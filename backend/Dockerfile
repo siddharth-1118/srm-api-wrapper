@@ -3,14 +3,14 @@ FROM mcr.microsoft.com/playwright:v1.45.0-jammy
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Copy package files from the backend directory
+COPY backend/package*.json ./
 
 # Install npm dependencies
 RUN npm ci
 
-# Copy code
-COPY . .
+# Copy the rest of the backend files
+COPY backend/ ./
 
 # Compile TypeScript to JavaScript
 RUN npm run build
