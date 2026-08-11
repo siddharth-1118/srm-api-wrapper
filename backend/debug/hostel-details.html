@@ -1,0 +1,1090 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN" "http://www.w3.org/TR/html4/frameset.dtd"><html lang="en"><head>
+        <meta charset="utf-8"> 
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <title>SRM Student Portal</title>
+        <link href="../../resources/css/vendor/mainstyle.css" rel="stylesheet">
+        <link href="../../resources/css/vendor/all.css" rel="stylesheet" type="text/css">
+        <link href="../../resources/css/vendor/customstyle.css" rel="stylesheet">
+        <link href="../../resources/Image/college_icon.jpeg" type="Image/x-icon" rel="icon">
+        <script src="../../resources/js/vendor/jquery.min.js"></script>
+        <script>
+            var appURL = "";
+            var imageName;
+            var d;
+            $(function () {
+                (function (global) {
+
+                    if (typeof (global) === "undefined")
+                    {
+                        throw new Error("window is undefined");
+                    }
+
+                    var _hash = "!";
+                    var noBackPlease = function () {
+                        global.location.href += "#";
+                        // making sure we have the fruit available for juice....
+                        // 50 milliseconds for just once do not cost much (^__^)
+                        global.setTimeout(function () {
+                            global.location.href += "!";
+                        }, 50);
+                    };
+                    // Earlier we had setInerval here....
+                    global.onhashchange = function () {
+                        if (global.location.hash !== _hash) {
+                            global.location.hash = _hash;
+                        }
+                    };
+                    global.onload = function () {
+
+                        noBackPlease();
+                        // disables backspace on page except on input fields and textarea..
+                        document.body.onkeydown = function (e) {
+                            var elm = e.target.nodeName.toLowerCase();
+                            if (e.which === 8 && (elm !== 'input' && elm !== 'textarea')) {
+                                e.preventDefault();
+                            }
+                            // stopping event bubbling up the DOM tree..
+                            e.stopPropagation();
+                        };
+                    };
+                })(window);
+                $("#hidchkHostelOpen").val('2026-02-17 17:00:00');
+                funShow(11, '../../students/report/studentHostelDetails.jsp');
+            });
+
+            function funSetFormId(arg) {
+                if (arg > 1001) {
+                    $('#logoutModal').modal('show');
+                } else {
+                    $("#hdnFormId").val(arg);
+                    $('#userHomePage').attr("action", "../../students/template/HRDSystem.jsp");
+                    $('#userHomePage').submit();
+                }
+            }
+
+            function funShow(arg, argURL) {
+                appParameter = [];
+                appParameter.push({name: "iden", value: arg});
+                appParameter.push({name: "filter", value: ""});
+                appParameter.push({name: "hdnFormDetails", value: $("#hdnFormDetails").val()});
+                appParameter.push({name: "csrfPreventionSalt", value: $("#csrfPreventionSalt").val()});
+                $(".navmenu").removeClass("active");
+                $("#listId" + arg).addClass("active");
+                if ($("#listId" + arg).parent().closest('nav').attr('class') == "sidenav-menu-nested nav") {
+                    $("#" + $("#listId" + arg).parent().closest('nav').closest('div').attr('id')).addClass('show');
+                }
+                if (arg < 1001) {
+                    $("#divMainDetails").html("<img src='../../resources/Image/wait.gif' alt='Loading... Please Wait!'>");
+                    $("#divMainDetails").show();
+                    $.post(argURL, appParameter, function (data) {
+                        $("#divMainDetails").html(data);
+                        $("#divMainDetails").show();
+                    }, "html").fail(function (jqXHR, textStatus, errorThrown) {
+                        alert(jqXHR.responseText);
+                    })
+                } else {
+                    $('#logoutModal').modal('show');
+                }
+            }
+        </script>
+    </head>
+    <body class="nav-fixed">
+        <form id="userHomePage" name="userHomePage" method="post">
+            <nav class="topnav navbar navbar-expand shadow justify-content-between justify-content-sm-start navbar-light bg-white" id="sidenavAccordion">
+                <button class="btn btn-icon btn-transparent-dark order-1 order-lg-0 mr-lg-2" id="sidebarToggle"><i class="fa fa-bars"></i></button>
+                <a class="navbar-brand" href="../../students/loginManager/UserHomePage.jsp">
+                    <img src="../../resources/Image/srmist.png" alt="SRM Logo"> 
+                    <br><font style="font-size: 9pt;">Student Portal</font>
+                </a>
+                <span class="text-custom d-none d-sm-block"><b>Faculty of Engineering and Technology, Kattankulathur</b></span>
+
+                <ul class="navbar-nav align-items-center ml-auto text-center">
+
+                    <a style="cursor:pointer;">
+                        <span class="dropdown-item" data-toggle="modal" data-target="#logoutModal">
+                            <div class="dropdown-item-icon"><i class="fas fa-sign-out-alt"></i></div>
+                            Logout
+                        </span>
+                    </a>
+                </ul>
+            </nav>
+
+            <div id="layoutSidenav">
+                <div id="layoutSidenav_nav">
+                    <nav class="sidenav shadow-right sidenav-light">
+                        <div class="sidenav-menu">
+                            <div class="nav accordion" id="accordionSidenav">
+
+                                <!-- Sidenav Heading -->
+                                <!--                                <div class="sidenav-menu-heading">Menus</div>-->
+
+                                
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId1" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(1)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-tachometer-alt"></i></div>
+                                    Dashboard 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId17" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(17)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-user"></i></div>
+                                    Personal Details 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId69" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(69)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-newspaper"></i></div>
+                                    Fee Payment 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId8" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(8)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-newspaper"></i></div>
+                                    Grade / Mark &amp; Credit 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId84" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(84)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-newspaper"></i></div>
+                                    Course Status 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId129" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(129)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-book"></i></div>
+                                    Academic Calender/Planner 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId142" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(142)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-book"></i></div>
+                                    Student Course Registration 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId9" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(9)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-calculator"></i></div>
+                                    Attendance Details 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId24" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(24)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-newspaper"></i></div>
+                                    Exam Provisional Results 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId27" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(27)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-newspaper"></i></div>
+                                    Exam Revaluation Results 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId10" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(10)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-clock"></i></div>
+                                    Timetable 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <a class="nav-link collapsed" href="javascript:void(0);" data-toggle="collapse" data-target="#collapse136" aria-expanded="false" aria-controls="collapse136">
+                                <div class="nav-link-icon"><i class="fa fa-bed"></i></div>
+                                    Hostel
+                                <div class="sidenav-collapse-arrow">
+                                    <i class="fas fa-angle-down"></i>
+                                </div>
+                            </a>
+                            <div class="collapse show" id="collapse136" data-parent="#accordionSidenav">
+                                <nav class="sidenav-menu-nested nav">
+                                    <a id="listId14" class="nav-link" onclick="funSetFormId(14)" style="cursor:pointer;">Hostel Booking </a>
+                                    
+                                    <a id="listId11" class="nav-link active" onclick="funSetFormId(11)" style="cursor:pointer;">Hostel Details </a>
+                                    
+                                    <a id="listId135" class="nav-link" onclick="funSetFormId(135)" style="cursor:pointer;">Hostel Willingness </a>
+                                    
+                                </nav>
+                            </div>
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId13" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(13)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-server"></i></div>
+                                    Internal Mark Details 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId12" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(12)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-bus"></i></div>
+                                    Transport Details 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId3" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(3)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-receipt"></i></div>
+                                    Finance Details 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId5" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(5)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-server"></i></div>
+                                    Notice Board 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId137" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(137)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-users"></i></div>
+                                    Student&nbsp;Feedback 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId119" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(119)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-book"></i></div>
+                                    ABC ID Generation 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId22" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(22)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-solid fa-bus"></i></div>
+                                    Transport Booking 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId42" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(42)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-newspaper"></i></div>
+                                    Exam HallTicket 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId44" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(44)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-envelope"></i></div>
+                                    Summer Term / Compensatory Registration  
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId46" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(46)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-newspaper"></i></div>
+                                    Photo for Degree certificate 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId49" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(49)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-newspaper"></i></div>
+                                    Scribe Request 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId54" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(54)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-newspaper"></i></div>
+                                    Review/Revaluation/Retotaling Registration 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId60" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(60)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-newspaper"></i></div>
+                                    Transcript 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId57" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(57)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-newspaper"></i></div>
+                                    Name Change - Gazette 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId58" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(58)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-newspaper"></i></div>
+                                    Certificate Correction 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId59" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(59)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-newspaper"></i></div>
+                                    Migration Certificate 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId61" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(61)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-newspaper"></i></div>
+                                    Duplicate Certificate 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId66" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(66)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-newspaper"></i></div>
+                                    Attestation 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId74" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(74)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-file"></i></div>
+                                    Community Certificate 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId94" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(94)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-user"></i></div>
+                                    Student Review Feedback 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId95" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(95)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-file"></i></div>
+                                    Service Request 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId99" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(99)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-file"></i></div>
+                                    Stipend Request 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId100" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(100)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-newspaper"></i></div>
+                                    Grade Sheet Collection 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId114" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(114)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-file"></i></div>
+                                    SRMIST Policies 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId116" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(116)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-book"></i></div>
+                                    Scholarship Renewal Process 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId124" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(124)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-newspaper"></i></div>
+                                    e-Sanad (SRMIST) Registration 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId126" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(126)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-newspaper"></i></div>
+                                    Exam Time Table 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId141" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(141)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-bed"></i></div>
+                                    Refund Request BankDetails 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <a class="nav-link" data-toggle="modal" data-target="#logoutModal">
+                                <div class="nav-link-icon"><i class="fas fa-sign-out-alt"></i></div>
+                                Logout
+                            </a>
+                        </div>
+                </div>
+                <!-- Sidenav Footer-->
+                <div class="sidenav-footer">
+                    <div class="sidenav-footer-content">
+                        <div class="sidenav-footer-subtitle">RA2511026010906</div>
+                        <div class="sidenav-footer-subtitle">VOOKA SAI SIDDHARTH</div>
+                        <div class="sidenav-footer-title">Tue 11-Aug-2026 23:27:03</div>
+                    </div>
+                    <input type="hidden" style="color:white;" id="hidchkHostelOpen" name="hidchkHostelOpen" size="10" value="2026-02-17 17:00:00">
+                </div>
+                </nav>
+            </div>
+            <div id="layoutSidenav_content">
+                <main>
+                    <div id="divMainDetails" style="">
+
+
+
+<link rel="stylesheet" href="../../resources/css/bootstrap-datepicker.min.css">
+<!--For Date&time picker and time picker-->
+<link rel="stylesheet" href="../../resources/css/bootstrap-datetimepicker.min.css">
+
+<script src="../../resources/js/bootstrap-datepicker-v1-10.min.js"></script>
+<script src="../../resources/js/moment-v2-9.min.js" type="text/javascript"></script>
+<script src="../../resources/js/bootstrap-datetimepicker-v4-17.min.js"></script>
+
+
+
+
+
+
+
+
+<script>
+    var url = '../../students/transaction/HostelCancellationInner.jsp';
+
+    $('#txtOutTime').datetimepicker({
+        format: 'DD-MM-YYYY HH:mm:ss',
+        sideBySide: true,
+        minDate: new Date,
+        maxDate: moment().add(1, 'days')
+    });
+    $('#txtInTime').datetimepicker({
+        format: 'DD-MM-YYYY HH:mm:ss',
+        sideBySide: true,
+        minDate: new Date, // Prevents auto-setting in time same as out time
+        maxDate: moment().add(1, 'days')
+    });
+// On Out Time change, set In Time's minDate
+    $("#txtOutTime").on("dp.change", function (e) {
+        $('#txtInTime').data("DateTimePicker").minDate(e.date);
+    });
+//    $(function () {
+//        var dtToday = new Date();
+//        var month = dtToday.getMonth() + 1;
+//        var day = dtToday.getDate();
+//        var year = dtToday.getFullYear();
+//        if (month < 10)
+//            month = '0' + month.toString();
+//        if (day < 10)
+//            day = '0' + day.toString();
+//        var expiryDate = year + '-' + month + '-' + day;
+//        var minDateOfJoining = year - 25 + '-' + month + '-' + day;  // e.g., 25 years ago
+//        var maxDateOfLeaving = year + 25 + '-' + month + '-' + day;  // e.g., 25 years from now
+//        $("#txtDateofJoining").attr('max', expiryDate);  // max date is today (can select any date in the past)
+//        $("#txtDateofJoining").attr('min', minDateOfJoining);  // min date is 25 years ago
+//        $("#txtDateofLeaving").attr('max', maxDateOfLeaving);  // max date is 25 years from now
+//        $("#txtDateofLeaving").attr('min', expiryDate);  // min date is today (can select any future date)
+//    });
+
+    function funTabActive(arg) {
+        $(".tabhead").removeClass("active");
+        $(".tabhead").removeClass("ms-0");
+        $(".clstabcontent").addClass("d-none");
+        $("#tab" + arg).addClass("active ms-0");
+        $("#tabcontent" + arg).removeClass("d-none");
+    }
+    function verification(transid, pgtype, officeid) {
+        $("#historypgtype").val(pgtype);
+        $("#historysrmtransid").val(transid);
+        $("#hdnOfficeid").val(officeid);
+        document.getElementById("hostelreconcile").submit();
+
+    }
+
+    function funCancelRoom(hostelname, roomno) {
+        $("#modalBodyAlert").html("Willing to cancel your booked hostel - " + hostelname + ", Room No -" + roomno);
+        $("#alertModal").modal("show");
+    }
+
+    function funAjaxCancelRoom() {
+        $("#alertModal").modal("hide");
+        $("#cancelbutton").hide();
+
+        var AJAXparameter = [];
+        AJAXparameter.push({name: "iden", value: "1"});
+        AJAXparameter.push({name: "hostelid", value: $("#hdnhostelid").val()});
+        AJAXparameter.push({name: "roomid", value: $("#hdnroomid").val()});
+    
+        AJAXparameter.push({name: "bookingid", value: $("#hdnbookingid").val()});
+        $("#divHostelCancel").html("<img src='../../resources/Image/wait.gif' alt='Loading... Please wait..'>");
+        $.post(url, AJAXparameter, function (data) {
+            if (data.resultstatus == 1) {
+                $("#divHostelCancel").html("<div class='alert alert-success alert-icon border-top-lg mb-1 mt-1' role='alert' id='errorAlert'><div class='alert-icon-content' id='errorAlertcontent'>" + data.result + "</div></div>");
+            } else {
+                $("#divHostelCancel").html("<div class='alert alert-danger alert-icon border-top-lg mb-1 mt-1' role='alert' id='errorAlert'><div class='alert-icon-content' id='errorAlertcontent'>" + data.result + "</div></div>");
+            }
+        }, "json").error(function (jqXHR, textStatus, errorThrown) {
+            alert("errpr" + textStatus + "--" + jqXHR.responseText + " " + errorThrown);
+        });
+    }
+
+    function funSubmitRequest() {
+        if ($("#txtDateofJoining").val() == "") {
+            $("#divHostelVacate").html("<div class='alert alert-danger alert-icon border-top-lg mb-2 mt-2' role='alert' id='errorAlert'><div class='alert-icon-content' id='errorAlertcontent'>Kindly Enter Date of Joining</div></div>");
+            return false;
+        } else {
+            $("#divHostelVacate").html("");
+        }
+        if ($("#txtDateofLeaving").val() == "") {
+            $("#divHostelVacate").html("<div class='alert alert-danger alert-icon border-top-lg mb-2 mt-2' role='alert' id='errorAlert'><div class='alert-icon-content' id='errorAlertcontent'>Kindly Enter Date of Leaving</div></div>");
+            return false;
+        } else {
+            $("#divHostelVacate").html("");
+        }
+        var AJAXparameter = [];
+        AJAXparameter.push({name: "iden", value: "2"});
+        AJAXparameter.push({name: "hdnHostelId", value: $("#hdnHostelId").val()});
+        AJAXparameter.push({name: "hdnRoomId", value: $("#hdnRoomId").val()});
+        AJAXparameter.push({name: "hdnAcademicYearId", value: $("#hdnAcademicYearId").val()});
+        AJAXparameter.push({name: "txtDateofJoining", value: $("#txtDateofJoining").val()});
+        AJAXparameter.push({name: "txtDateofLeaving", value: $("#txtDateofLeaving").val()});
+        $("#divHostelVacate").html("<img src='../../resources/Image/wait.gif' alt='Loading... Please wait..'>");
+        $(".btn").hide();
+        $.post(url, AJAXparameter, function (data) {
+            if (data.resultstatus == 1) {
+                $("#divHostelVacate").html("<div class='alert alertsubmit alert-success alert-icon border-top-lg mb-1 mt-1' role='alert' id='errorAlert'><div class='alert-icon-content' id='errorAlertcontent'>" + data.result + "</div></div>");
+                $(".alertsubmit").fadeTo(3000, 300).slideUp(200, function () {
+                    $(".alertsubmit").slideUp(300);
+                    $('#hdnFormId').val(11);
+                    $("#userHomePage").attr("action", "../../students/template/HRDSystem.jsp");
+                    $("#userHomePage").submit();
+                });
+                funTabActive(4);
+            } else {
+                $(".btn").show();
+                $("#divHostelVacate").html("<div class='alert alert-danger alert-icon border-top-lg mb-1 mt-1' role='alert' id='errorAlert'><div class='alert-icon-content' id='errorAlertcontent'>" + data.result + "</div></div>");
+            }
+        }, "json").error(function (jqXHR, textStatus, errorThrown) {
+            alert("errpr" + textStatus + "--" + jqXHR.responseText + " " + errorThrown);
+        });
+    }
+    function funSubmitPermissionRequest() {
+        if ($("#txtOutTime").val() == "") {
+            $("#divHostelPermission").html("<div class='alert alert-danger alert-icon border-top-lg mb-2 mt-2' role='alert' id='errorAlert'><div class='alert-icon-content' id='errorAlertcontent'>Kindly Enter Date of Joining</div></div>");
+            return false;
+        } else {
+            $("#divHostelPermission").html("");
+        }
+        if ($("#txtInTime").val() == "") {
+            $("#divHostelPermission").html("<div class='alert alert-danger alert-icon border-top-lg mb-2 mt-2' role='alert' id='errorAlert'><div class='alert-icon-content' id='errorAlertcontent'>Kindly Enter Date of Leaving</div></div>");
+            return false;
+        } else {
+            $("#divHostelPermission").html("");
+        }
+        var AJAXparameter = [];
+        AJAXparameter.push({name: "iden", value: "3"});
+        AJAXparameter.push({name: "hdnHostelId", value: $("#hdnHostelId").val()});
+        AJAXparameter.push({name: "hdnRoomId", value: $("#hdnRoomId").val()});
+        AJAXparameter.push({name: "hdnAcademicYearId", value: $("#hdnAcademicYearId").val()});
+        AJAXparameter.push({name: "txtOutTime", value: $("#txtOutTime").val()});
+        AJAXparameter.push({name: "txtInTime", value: $("#txtInTime").val()});
+        AJAXparameter.push({name: "txtPurpose", value: $("#txtPurpose").val()});
+        $("#divHostelPermission").html("<img src='../../resources/Image/wait.gif' alt='Loading... Please wait..'>");
+        $(".btn").hide();
+        $.post(url, AJAXparameter, function (data) {
+            if (data.resultstatus == 1) {
+                $("#divHostelPermission").html("<div class='alert alertsubmit alert-success alert-icon border-top-lg mb-1 mt-1' role='alert' id='errorAlert'><div class='alert-icon-content' id='errorAlertcontent'>" + data.result + "</div></div>");
+                $(".alertsubmit").fadeTo(3000, 300).slideUp(200, function () {
+                    $(".alertsubmit").slideUp(300);
+                    $('#hdnFormId').val(11);
+                    $("#userHomePage").attr("action", "../../students/template/HRDSystem.jsp");
+                    $("#userHomePage").submit();
+                });
+                funTabActive(5);
+            } else {
+                $(".btn").show();
+                $("#divHostelPermission").html("<div class='alert alert-danger alert-icon border-top-lg mb-1 mt-1' role='alert' id='errorAlert'><div class='alert-icon-content' id='errorAlertcontent'>" + data.result + "</div></div>");
+            }
+        }, "json").error(function (jqXHR, textStatus, errorThrown) {
+            alert("errpr" + textStatus + "--" + jqXHR.responseText + " " + errorThrown);
+        });
+    }
+
+    function print1(studentid, srmtrans) {
+        myWindow = window.open("../../students/transaction/HostelPaymentReceipt.jsp?srmTransid=" + srmtrans, this.target);
+        myWindow.focus()
+    }
+    function funShowForm(vacatingid) {
+        myWindow = window.open("../../students/transaction/hostelVacatingFormforPrinting.jsp?vacatingformid=" + vacatingid, this.target);
+        myWindow.focus()
+    }
+    function funShowPermissionForm(permissionid) {
+        myWindow = window.open("../../students/transaction/hostelPermissionFormForPrint.jsp?permissionformid=" + permissionid, this.target);
+        myWindow.focus()
+    }
+
+</script>
+<!-- Main page content-->
+<nav class="nav nav-borders">
+    <a class="nav-link tabhead active ms-0 font-weight-bold font-weight-700" id="tab1" onclick="funTabActive(1)">Payment Transaction Log</a>
+    <a class="nav-link tabhead font-weight-bold font-weight-700" id="tab2" onclick="funTabActive(2)">Hostel Booking Details</a>
+    <a class="nav-link tabhead font-weight-bold font-weight-700" id="tab3" onclick="funTabActive(3)">Hostel Cancellation</a>
+    <a class="nav-link tabhead font-weight-bold font-weight-700" id="tab4" onclick="funTabActive(4)">Hostel Vacate Request</a>
+    <!--<a class="nav-link tabhead font-weight-bold font-weight-700" id="tab5" onclick="funTabActive(5)">Hostel Permission Request</a>-->
+
+</nav>
+<hr class="mt-0 mb-4">
+
+
+<div class="card mb-4 clstabcontent " id="tabcontent1">
+    <div class="container mt-4">
+        <div class="card mb-4">
+            <div class="card-header bg-custom text-white">Hostel Details</div>
+            <div class="card-body p-0">
+                <div class="table-responsive table-billing-history">
+                    <form name="hostelreconcile" id="hostelreconcile" action="/srmiststudentportal/HostelReconcile" method="POST" autocomplete="off">
+                        <table class="table mb-0">
+                            <thead>
+                                <tr>
+
+                                    <th width="12%" scope="col">Verify</th>
+                                    <th width="12%" scope="col">Student Id</th>
+                                    <th width="12%" scope="col">SRM Transaction Id</th>
+                                    <th width="12%" scope="col">Bank Transaction Id</th>
+                                    <th width="12%" scope="col">Total Amount</th>
+                                    <th width="30%" scope="col">Payment Status</th>
+                                    <th width="12%" scope="col">Transaction Date</th>
+                                    <th width="12%" scope="col">Payment Gateway</th>   
+                                </tr>
+                            </thead>
+                            <tbody>
+                                
+                                    
+                                    
+                                    
+                                    <tr valign="top">
+                                        
+                                            
+                                            
+                                                <td> - </td>
+                                            
+                                            
+                                        
+                                               
+                                                <td><a href="javascript:void(0)" onclick="print1('687469', '687469S17022026050859376R407');"> 687469</a></td> 
+                                            
+                                            
+                                             
+                                        <td>687469S17022026050859376R407</td>
+                                        <td>604868058177</td>
+                                        <td>130500</td>
+                                                                                
+                                            
+                                            
+                                                <td>Success - No Error</td>
+                                            
+                                                 
+
+                                        <td>17-02-2026 17:08:59</td>
+                                        <td>Pay U</td>                              
+                                    </tr> 
+                                
+                                    
+                                    
+                                    
+                                    <tr valign="top">
+                                        
+                                            
+                                            
+                                                <td> - </td>
+                                            
+                                            
+                                        
+                                            
+                                            
+                                                <td>687469 </td>
+                                            
+                                             
+                                        <td>687469S17022026050412170R82</td>
+                                        <td>nil</td>
+                                        <td>125500</td>
+                                                                                
+                                            
+                                            
+                                                <td>Failed - Payu unable to parse ACS page for native , Payu unable to parse ACS page for native</td>
+                                            
+                                                 
+
+                                        <td>17-02-2026 17:04:12</td>
+                                        <td>Pay U</td>                              
+                                    </tr> 
+                                
+                                
+                            </tbody>
+                        </table>
+                        <input type="hidden" value="0" id="historysrmtransid" name="historysrmtransid">
+                        <input type="hidden" value="0" id="historypgtype" name="historypgtype">
+                        <input type="hidden" value="0" id="srmtransid" name="srmtransid">
+                        <input type="hidden" value="0" id="hdnOfficeid" name="hdnOfficeid">
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="card mb-3 clstabcontent d-none" id="tabcontent2">
+    <div class="container mt-4">
+        <div class="card mb-4">
+            <div class="card-header bg-custom text-white">Hostel Details</div>
+            <div class="card-body p-0">
+                <div class="table-responsive table-billing-history">
+                    <table class="table mb-0">
+                        <thead>
+                            <tr>
+                                <th width="40%" scope="col">Hostel Name</th>
+                                <th width="20%" scope="col">Room No.</th>
+                                <th width="20%" scope="col">Allocated Date</th>
+                                <th width="20%" scope="col">Academic Year</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            
+                                
+                                <tr valign="top">
+                                    <td>Mullai</td>
+                                    <td>  721</td>
+                                    <td>22-Jul-2025</td>
+                                    <td>2025-2026</td>
+                                </tr> 
+                            
+                                
+                                <tr valign="top">
+                                    <td>Manoranjitham</td>
+                                    <td>  415</td>
+                                    <td>17-Feb-2026</td>
+                                    <td>2026-2027</td>
+                                </tr> 
+                            
+                            
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>                        
+
+<div class="card mb-4 clstabcontent d-none" id="tabcontent3">
+    <div class="container mt-4">
+        <div class="card mb-4">
+            <div class="card-header bg-custom text-white">Hostel Cancellation</div>
+
+            <div class="card-body">
+
+                <div class="row mt-5">
+                    <!--<div class="row">-->
+                    
+
+                                       
+                    <div class="col-md-12" align="center"><h2><b>Please contact your hostel office for canceling the room</b></h2></div>
+                                  
+                </div>
+            </div>
+        </div> 
+
+    </div>
+    <div class="modal fade" id="alertModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-custom text-white">
+                    <h5 class="modal-title text-white" id="exampleModalLabel">Hostel Booking</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span class="text-white" aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="modalBodyAlert">
+                    Are you sure to cancel the hostel room?
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-custom lift" type="button" onclick="funAjaxCancelRoom()">Confirm</button>
+                    <!--<button class="btn btn-dark lift" type="button" data-dismiss="modal">Okay</button>-->
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div> 
+
+<div class="card mb-4 clstabcontent d-none" id="tabcontent4">
+    <div class="card mb-4">
+        <div class="card-header bg-custom text-white">Hostel Vacate Request</div>
+        <div class="card-body">
+            <div class="row mt-5">
+                <div class="col-md-12">
+                    <!--                    <h1>We are doing maintenance right now. It'll be back shortly.</h1>-->
+                    
+                    
+                        
+                        <div class="card card-icon lift lift-sm mb-4">
+                            <div class="row no-gutters">
+                                <div class="col-auto card-icon-aside bg-custom">
+                                    <i class="fa fa-hotel text-white" aria-hidden="true"></i>
+                                </div>
+                                <div class="col">
+                                    <div class="card-body py-4">
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <table class="table table-borderless mb-0">
+                                                    <tbody>
+                                                        <tr class="border-bottom">
+                                                            <td>Hostel</td>
+                                                            <td><div class="font-weight-bold">Mullai</div></td>
+                                                            <td>Room Type</td>
+                                                            <td><div class="font-weight-bold">Triple (Non Attached Non AC)</div></td>
+                                                        </tr>
+                                                        <tr class="border-bottom">
+                                                            <td>Room No</td>
+                                                            <td><div class="font-weight-bold">  721</div></td>
+                                                            <td>Hostel Booking Date</td>
+                                                            <td><div class="font-weight-bold">22-07-2025</div></td>
+                                                        </tr>
+                                                        
+                                                            <tr class="border-bottom">
+                                                                <td>Date of Joining<p class="requiredfield">*</p></td>
+                                                                <td>
+                                                                    <input type="date" class="form-control" id="txtDateofJoining" name="txtDateofJoining" value="22-07-2025" required="">
+                                                                </td>
+                                                                <td>Date of Leaving<p class="requiredfield">*</p></td>
+                                                                <td>
+                                                                    <input type="date" class="form-control" id="txtDateofLeaving" name="txtDateofLeaving" required="">
+                                                                </td>
+                                                            </tr>
+                                                        
+                                                        
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                            
+                                                <div class="modal-footer d-flex justify-content-center col-md-12">
+                                                    <div class="col-md-12" id="divHostelVacate"></div>
+                                                    <input type="hidden" id="hdnHostelId" name="hdnHostelId" value="125">
+                                                    <input type="hidden" id="hdnRoomId" name="hdnRoomId" value="21815">
+                                                    <input type="hidden" id="hdnAcademicYearId" name="hdnAcademicYearId" value="25">
+                                                    <button class="btn btn-orange lift" type="button" onclick="funSubmitRequest()">Submit Request</button>
+                                                    <button class="btn btn-success lift" type="button" data-dismiss="modal">Refresh</button>
+                                                </div>
+                                            
+                                        </div>
+                                    </div>
+                                </div>
+                            
+                        </div>
+                    </div>
+                </div>
+            </div> 
+        </div>
+    </div>
+</div>
+</div>
+                </main>
+                <footer class="footer mt-auto footer-light">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-md-6 small"></div>
+                        </div>
+                    </div>
+                </footer>
+            </div>
+        </div>
+        <input type="hidden" id="hdnFormStatus" name="hdnFormStatus" value="0">
+        <input type="hidden" id="hdnFormId" name="hdnFormId" value="1">
+        <input type="hidden" id="hdnFormDetails" name="hdnFormDetails" value="1">
+        <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Logout</h5>
+                        <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                            <span class="text-white" aria-hidden="true">×</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        Are you sure to logout?
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-dark lift" type="button" data-dismiss="modal">Cancel</button>
+                        <a class="btn btn-custom lift" href="../../students/template/Logout.jsp">Logout</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <input type="hidden" id="hdnFilename" name="hdnFilename" value="">
+        <input type="hidden" name="csrfPreventionSalt" id="csrfPreventionSalt" value="">
+    </form>
+    <script src="../../resources/js/vendor/bootstrap.bundle.min.js"></script>
+    <script src="../../resources/js/vendor/jquery.easing.min.js"></script>
+    <script src="../../resources/js/vendor/main.js"></script>                   
+
+
+
+
+ </body></html>

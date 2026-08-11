@@ -1,0 +1,903 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN" "http://www.w3.org/TR/html4/frameset.dtd"><html lang="en"><head>
+        <meta charset="utf-8"> 
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <title>SRM Student Portal</title>
+        <link href="../../resources/css/vendor/mainstyle.css" rel="stylesheet">
+        <link href="../../resources/css/vendor/all.css" rel="stylesheet" type="text/css">
+        <link href="../../resources/css/vendor/customstyle.css" rel="stylesheet">
+        <link href="../../resources/Image/college_icon.jpeg" type="Image/x-icon" rel="icon">
+        <script src="../../resources/js/vendor/jquery.min.js"></script>
+        <script>
+            var appURL = "";
+            var imageName;
+            var d;
+            $(function () {
+                (function (global) {
+
+                    if (typeof (global) === "undefined")
+                    {
+                        throw new Error("window is undefined");
+                    }
+
+                    var _hash = "!";
+                    var noBackPlease = function () {
+                        global.location.href += "#";
+                        // making sure we have the fruit available for juice....
+                        // 50 milliseconds for just once do not cost much (^__^)
+                        global.setTimeout(function () {
+                            global.location.href += "!";
+                        }, 50);
+                    };
+                    // Earlier we had setInerval here....
+                    global.onhashchange = function () {
+                        if (global.location.hash !== _hash) {
+                            global.location.hash = _hash;
+                        }
+                    };
+                    global.onload = function () {
+
+                        noBackPlease();
+                        // disables backspace on page except on input fields and textarea..
+                        document.body.onkeydown = function (e) {
+                            var elm = e.target.nodeName.toLowerCase();
+                            if (e.which === 8 && (elm !== 'input' && elm !== 'textarea')) {
+                                e.preventDefault();
+                            }
+                            // stopping event bubbling up the DOM tree..
+                            e.stopPropagation();
+                        };
+                    };
+                })(window);
+                $("#hidchkHostelOpen").val('2026-02-17 17:00:00');
+                funShow(26, '../../students/transaction/HostelFace.jsp');
+            });
+
+            function funSetFormId(arg) {
+                if (arg > 1001) {
+                    $('#logoutModal').modal('show');
+                } else {
+                    $("#hdnFormId").val(arg);
+                    $('#userHomePage').attr("action", "../../students/template/HRDSystem.jsp");
+                    $('#userHomePage').submit();
+                }
+            }
+
+            function funShow(arg, argURL) {
+                appParameter = [];
+                appParameter.push({name: "iden", value: arg});
+                appParameter.push({name: "filter", value: ""});
+                appParameter.push({name: "hdnFormDetails", value: $("#hdnFormDetails").val()});
+                appParameter.push({name: "csrfPreventionSalt", value: $("#csrfPreventionSalt").val()});
+                $(".navmenu").removeClass("active");
+                $("#listId" + arg).addClass("active");
+                if ($("#listId" + arg).parent().closest('nav').attr('class') == "sidenav-menu-nested nav") {
+                    $("#" + $("#listId" + arg).parent().closest('nav').closest('div').attr('id')).addClass('show');
+                }
+                if (arg < 1001) {
+                    $("#divMainDetails").html("<img src='../../resources/Image/wait.gif' alt='Loading... Please Wait!'>");
+                    $("#divMainDetails").show();
+                    $.post(argURL, appParameter, function (data) {
+                        $("#divMainDetails").html(data);
+                        $("#divMainDetails").show();
+                    }, "html").fail(function (jqXHR, textStatus, errorThrown) {
+                        alert(jqXHR.responseText);
+                    })
+                } else {
+                    $('#logoutModal').modal('show');
+                }
+            }
+        </script>
+    </head>
+    <body class="nav-fixed">
+        <form id="userHomePage" name="userHomePage" method="post">
+            <nav class="topnav navbar navbar-expand shadow justify-content-between justify-content-sm-start navbar-light bg-white" id="sidenavAccordion">
+                <button class="btn btn-icon btn-transparent-dark order-1 order-lg-0 mr-lg-2" id="sidebarToggle"><i class="fa fa-bars"></i></button>
+                <a class="navbar-brand" href="../../students/loginManager/UserHomePage.jsp">
+                    <img src="../../resources/Image/srmist.png" alt="SRM Logo"> 
+                    <br><font style="font-size: 9pt;">Student Portal</font>
+                </a>
+                <span class="text-custom d-none d-sm-block"><b>Faculty of Engineering and Technology, Kattankulathur</b></span>
+
+                <ul class="navbar-nav align-items-center ml-auto text-center">
+
+                    <a style="cursor:pointer;">
+                        <span class="dropdown-item" data-toggle="modal" data-target="#logoutModal">
+                            <div class="dropdown-item-icon"><i class="fas fa-sign-out-alt"></i></div>
+                            Logout
+                        </span>
+                    </a>
+                </ul>
+            </nav>
+
+            <div id="layoutSidenav">
+                <div id="layoutSidenav_nav">
+                    <nav class="sidenav shadow-right sidenav-light">
+                        <div class="sidenav-menu">
+                            <div class="nav accordion" id="accordionSidenav">
+
+                                <!-- Sidenav Heading -->
+                                <!--                                <div class="sidenav-menu-heading">Menus</div>-->
+
+                                
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId1" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(1)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-tachometer-alt"></i></div>
+                                    Dashboard 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId17" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(17)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-user"></i></div>
+                                    Personal Details 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId69" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(69)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-newspaper"></i></div>
+                                    Fee Payment 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId8" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(8)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-newspaper"></i></div>
+                                    Grade / Mark &amp; Credit 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId84" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(84)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-newspaper"></i></div>
+                                    Course Status 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId129" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(129)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-book"></i></div>
+                                    Academic Calender/Planner 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId142" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(142)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-book"></i></div>
+                                    Student Course Registration 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId9" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(9)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-calculator"></i></div>
+                                    Attendance Details 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId24" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(24)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-newspaper"></i></div>
+                                    Exam Provisional Results 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId27" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(27)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-newspaper"></i></div>
+                                    Exam Revaluation Results 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId10" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(10)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-clock"></i></div>
+                                    Timetable 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <a class="nav-link collapsed" href="javascript:void(0);" data-toggle="collapse" data-target="#collapse136" aria-expanded="false" aria-controls="collapse136">
+                                <div class="nav-link-icon"><i class="fa fa-bed"></i></div>
+                                    Hostel
+                                <div class="sidenav-collapse-arrow">
+                                    <i class="fas fa-angle-down"></i>
+                                </div>
+                            </a>
+                            <div class="collapse" id="collapse136" data-parent="#accordionSidenav">
+                                <nav class="sidenav-menu-nested nav">
+                                    <a id="listId14" class="nav-link" onclick="funSetFormId(14)" style="cursor:pointer;">Hostel Booking </a>
+                                    
+                                    <a id="listId11" class="nav-link" onclick="funSetFormId(11)" style="cursor:pointer;">Hostel Details </a>
+                                    
+                                    <a id="listId135" class="nav-link" onclick="funSetFormId(135)" style="cursor:pointer;">Hostel Willingness </a>
+                                    
+                                </nav>
+                            </div>
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId13" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(13)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-server"></i></div>
+                                    Internal Mark Details 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId12" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(12)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-bus"></i></div>
+                                    Transport Details 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId3" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(3)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-receipt"></i></div>
+                                    Finance Details 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId5" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(5)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-server"></i></div>
+                                    Notice Board 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId137" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(137)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-users"></i></div>
+                                    Student&nbsp;Feedback 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId119" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(119)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-book"></i></div>
+                                    ABC ID Generation 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId22" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(22)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-solid fa-bus"></i></div>
+                                    Transport Booking 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId42" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(42)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-newspaper"></i></div>
+                                    Exam HallTicket 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId44" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(44)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-envelope"></i></div>
+                                    Summer Term / Compensatory Registration  
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId46" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(46)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-newspaper"></i></div>
+                                    Photo for Degree certificate 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId49" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(49)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-newspaper"></i></div>
+                                    Scribe Request 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId54" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(54)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-newspaper"></i></div>
+                                    Review/Revaluation/Retotaling Registration 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId60" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(60)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-newspaper"></i></div>
+                                    Transcript 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId57" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(57)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-newspaper"></i></div>
+                                    Name Change - Gazette 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId58" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(58)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-newspaper"></i></div>
+                                    Certificate Correction 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId59" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(59)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-newspaper"></i></div>
+                                    Migration Certificate 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId61" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(61)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-newspaper"></i></div>
+                                    Duplicate Certificate 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId66" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(66)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-newspaper"></i></div>
+                                    Attestation 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId74" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(74)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-file"></i></div>
+                                    Community Certificate 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId94" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(94)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-user"></i></div>
+                                    Student Review Feedback 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId95" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(95)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-file"></i></div>
+                                    Service Request 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId99" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(99)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-file"></i></div>
+                                    Stipend Request 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId100" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(100)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-newspaper"></i></div>
+                                    Grade Sheet Collection 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId114" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(114)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-file"></i></div>
+                                    SRMIST Policies 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId116" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(116)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-book"></i></div>
+                                    Scholarship Renewal Process 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId124" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(124)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-newspaper"></i></div>
+                                    e-Sanad (SRMIST) Registration 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId126" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(126)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-newspaper"></i></div>
+                                    Exam Time Table 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <!-- 
+                            Individual Menu Begin
+                            -->
+                            <a id="listId141" class="nav-link navmenu" style="cursor:pointer;" onclick="funSetFormId(141)">
+                                <div class="nav-link-icon"><i class="fas fa-fw fa-bed"></i></div>
+                                    Refund Request BankDetails 
+                            </a>
+                            <!-- 
+                           Individual Menu End
+                            -->
+                            
+                            <a class="nav-link" data-toggle="modal" data-target="#logoutModal">
+                                <div class="nav-link-icon"><i class="fas fa-sign-out-alt"></i></div>
+                                Logout
+                            </a>
+                        </div>
+                </div>
+                <!-- Sidenav Footer-->
+                <div class="sidenav-footer">
+                    <div class="sidenav-footer-content">
+                        <div class="sidenav-footer-subtitle">RA2511026010906</div>
+                        <div class="sidenav-footer-subtitle">VOOKA SAI SIDDHARTH</div>
+                        <div class="sidenav-footer-title">Tue 11-Aug-2026 23:48:57</div>
+                    </div>
+                    <input type="hidden" style="color:white;" id="hidchkHostelOpen" name="hidchkHostelOpen" size="10" value="2026-02-17 17:00:00">
+                </div>
+                </nav>
+            </div>
+            <div id="layoutSidenav_content">
+                <main>
+                    <div id="divMainDetails" style="">
+
+
+
+
+
+
+
+
+
+
+    
+        <style>
+            body{margin-top:20px;}
+            .timeline-steps {
+                display: flex;
+                justify-content: center;
+                flex-wrap: wrap;
+
+            }
+
+            .timeline-steps .timeline-step {
+                align-items: center;
+                display: flex;
+                flex-direction: column;
+                position: relative;
+                margin: 1rem
+            }
+
+            @media (min-width:768px) {
+                .timeline-steps .timeline-step:not(:last-child):after {
+                    content: "";
+                    display: block;
+                    border-top: .25rem dotted #3b82f6;
+                    width: 3.46rem;
+                    position: absolute;
+                    left: 7.5rem;
+                    top: .3125rem
+                }
+                .timeline-steps .timeline-step:not(:first-child):before {
+                    content: "";
+                    display: block;
+                    border-top: .25rem dotted #3b82f6;
+                    width: 3.8125rem;
+                    position: absolute;
+                    right: 7.5rem;
+                    top: .3125rem
+                }
+            }
+
+            .timeline-steps .timeline-content {
+                width: 10rem;
+                text-align: center
+            }
+
+            .timeline-steps .timeline-content .inner-circle {
+                border-radius: 1.5rem;
+                height: 0.5rem;
+                width: 0.5rem;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                background-color: #d1d6d6
+            }
+
+            .timeline-steps .timeline-content .inner-circle:before {
+                content: "";
+                background-color: #d1d6d6;
+                display: inline-block;
+                height: 2rem;
+                width: 2rem;
+                min-width: 2rem;
+                border-radius: 6.25rem;
+                opacity: .5
+            }  
+
+            .timeline-steps .timeline-content .inner-circle-completed {
+                border-radius: 1.5rem;
+                height: 0.5rem;
+                width: 0.5rem;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                background-color: #158b89
+            }
+
+            .timeline-steps .timeline-content .inner-circle-completed:before {
+                content: "";
+                background-color: #158b89;
+                display: inline-block;
+                height: 2rem;
+                width: 2rem;
+                min-width: 2rem;
+                border-radius: 6.25rem;
+                opacity: .5
+            }  
+
+        </style>
+        <script>
+            function funHostelAdmitCardPrint() {
+                myWindow = window.open("../../students/transaction/HostelAllotmentOrderPrint.jsp?iden=1", this.target);
+                myWindow.focus()
+            }
+            function funHostelDeclarationPrint() {
+                myWindow = window.open("../../students/transaction/HostelAllotmentOrderPrint.jsp?iden=2", this.target);
+                myWindow.focus()
+            }
+        </script>
+    
+    
+        <div class="container mt-4">
+            <div class="card mb-4">
+                <div class="card-header bg-custom text-white">Hostel Booking</div> 
+                <div class="card-body">     
+                    <div class="row">
+                        <div class="col-md-12 text-center">
+                            
+                            <div class="container">
+                                <div class="row">
+                                    <div class="col">
+                                        <div class="timeline-steps aos-init aos-animate" data-aos="fade-up">
+                                            <div class="timeline-step">
+                                                <div class="timeline-content" data-toggle="popover" data-trigger="hover" data-placement="top" title="" data-content="And here's some amazing content. It's very engaging. Right?" data-original-title="2003">
+                                                    <div class="inner-circle-completed"></div>
+                                                    <p class="h7 text-muted mt-3 mb-1">Select Room &amp; Pay</p>
+                                                </div>
+                                            </div>
+                                            <div class="timeline-step">
+                                                <div class="timeline-content" data-toggle="popover" data-trigger="hover" data-placement="top" title="" data-content="And here's some amazing content. It's very engaging. Right?" data-original-title="2004">
+                                                    <div class="inner-circle-completed"></div>
+                                                    <p class="h7 text-muted mt-3 mb-1">Payment Confirmation</p>
+                                                </div>
+                                            </div>
+                                            <div class="timeline-step">
+                                                <div class="timeline-content" data-toggle="popover" data-trigger="hover" data-placement="top" title="" data-content="And here's some amazing content. It's very engaging. Right?" data-original-title="2005">
+                                                    <div class="inner-circle-completed"></div>
+                                                    <p class="h7 text-muted mt-3 mb-1">Allotment Order</p>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>     
+                    <div class="row mt-4">
+                        <!--<div class="row">-->
+                        <div class="col-md-12">  
+                               
+                                <div class="card-header text-custom text-center text-primary">SRM Hostels <br> Hostel Allotment Order - 2026-2027</div> 
+                                <div class="card card-icon lift lift-sm mb-2">
+                                    <div class="row no-gutters">
+                                        <div class="col-auto card-icon-aside bg-custom">
+                                            <i class="fa fa-hotel  text-white" aria-hidden="true"></i>
+                                        </div>
+                                        <div class="col">
+                                            <div class="card-body py-4">
+                                                <div class="row">
+                                                    <div class="col-md-12">
+                                                        <table class="table table-borderless mb-0">
+                                                            <tbody>
+                                                                <tr class="border-bottom">
+                                                                    <td>
+                                                                        Academic Year
+                                                                    </td>
+                                                                    <td>
+                                                                        <div class="font-weight-bold">2026-2027</div>
+                                                                    </td>
+                                                                </tr>
+                                                                
+                                                                <tr class="border-bottom">
+                                                                    <td>
+                                                                        Hostel Name
+                                                                    </td>
+                                                                    <td>
+                                                                        <div class="font-weight-bold">Manoranjitham</div>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr class="border-bottom">
+                                                                    <td>
+                                                                        Room No
+                                                                    </td>
+                                                                    <td>
+                                                                        <div class="font-weight-bold">415</div>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr class="border-bottom">
+                                                                    <td>
+                                                                        Allotment Date
+                                                                    </td>
+                                                                    <td>
+                                                                        <div class="font-weight-bold">17-02-2026</div>
+                                                                    </td>
+                                                                </tr>
+                                                                
+                                                                <tr class="border-bottom">
+                                                                    <td>
+                                                                        Fee Amount
+                                                                    </td>
+                                                                    <td>
+                                                                        <div class="font-weight-bold">130500.00</div>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr class="border-bottom">
+                                                                    <td>
+                                                                        Hostel Fee Pay Mode
+                                                                    </td>
+                                                                    <td>
+                                                                        <div class="font-weight-bold">Online</div>
+                                                                    </td>
+                                                                </tr>
+                                                                
+                                                                <tr class="border-bottom">
+                                                                    <td>
+                                                                        Hostel Admit Card
+                                                                    </td>
+                                                                    <td>
+                                                                        <div class="list-group list-group-flush"> 
+                                                                            <a class="list-group-item list-group-item-action" href="javascript:funHostelAdmitCardPrint();">
+                                                                                <i class="fa fa-download mr-1 text-custom" aria-hidden="true"></i>
+                                                                            </a>
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr class="border-bottom">
+                                                                    <td>
+                                                                        Declaration Form
+                                                                    </td>
+                                                                    <td>
+                                                                        <div class="list-group list-group-flush"> 
+                                                                            <a class="list-group-item list-group-item-action" href="javascript:funHostelDeclarationPrint();">
+                                                                                <i class="fa fa-download mr-1 text-custom" aria-hidden="true"></i>
+                                                                            </a>
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
+                                                                
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            
+                        </div> 
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+                </main>
+                <footer class="footer mt-auto footer-light">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-md-6 small"></div>
+                        </div>
+                    </div>
+                </footer>
+            </div>
+        </div>
+        <input type="hidden" id="hdnFormStatus" name="hdnFormStatus" value="0">
+        <input type="hidden" id="hdnFormId" name="hdnFormId" value="1">
+        <input type="hidden" id="hdnFormDetails" name="hdnFormDetails" value="1">
+        <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Logout</h5>
+                        <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                            <span class="text-white" aria-hidden="true">×</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        Are you sure to logout?
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-dark lift" type="button" data-dismiss="modal">Cancel</button>
+                        <a class="btn btn-custom lift" href="../../students/template/Logout.jsp">Logout</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <input type="hidden" id="hdnFilename" name="hdnFilename" value="">
+        <input type="hidden" name="csrfPreventionSalt" id="csrfPreventionSalt" value="">
+    </form>
+    <script src="../../resources/js/vendor/bootstrap.bundle.min.js"></script>
+    <script src="../../resources/js/vendor/jquery.easing.min.js"></script>
+    <script src="../../resources/js/vendor/main.js"></script>                   
+
+
+
+
+ </body></html>

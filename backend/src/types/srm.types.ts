@@ -1,0 +1,72 @@
+import { BrowserContext, Page } from 'playwright';
+
+export interface SRMSession {
+  sessionId: string;
+  browserContext: BrowserContext;
+  page: Page;
+  state: 'CAPTCHA_REQUIRED' | 'AUTHENTICATED' | 'AUTH_FAILED';
+  authenticated: boolean;
+  createdAt: number;
+  lastActivityAt: number;
+}
+
+export interface StudentProfile {
+  name: string;
+  studentId: string;
+  registerNumber: string;
+  email: string;
+  institution: string;
+  program: string;
+  semester: string;
+  batch: string;
+  section: string;
+  facultyAdvisor: string;
+  status: string;
+}
+
+export interface AttendanceSubject {
+  code: string;
+  name: string;
+  classesHeld: number;
+  classesAttended: number;
+  percentage: number;
+}
+
+export interface GradeEntry {
+  courseCode: string;
+  courseName: string;
+  internalMarks?: number;
+  externalMarks?: number;
+  total?: number;
+  grade: string;
+  credits: number;
+  gradePoint?: number;
+}
+
+export interface TimetableEntry {
+  day: string;
+  period: string;
+  courseCode: string;
+  courseName: string;
+  faculty: string;
+  room: string;
+}
+
+export interface ExamResultEntry {
+  courseCode: string;
+  courseName: string;
+  semester: string;
+  internalMarks: string;
+  externalMarks: string;
+  total: string;
+  result: string;
+  grade: string;
+}
+
+export type SrmErrorCode =
+  | 'INVALID_CAPTCHA'
+  | 'INVALID_CREDENTIALS'
+  | 'SRM_UNAVAILABLE'
+  | 'SESSION_EXPIRED'
+  | 'NOT_AVAILABLE'
+  | 'INTERNAL_ERROR';

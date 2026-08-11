@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: srm-companion
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install && npx playwright install chromium --with-deps && npm run build
+    startCommand: npm start
+    plan: free
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: FRONTEND_URL
+        value: https://classivo-1.vercel.app
+      - key: SRM_LOGIN_URL
+        value: https://sp.srmist.edu.in/srmiststudentportal/students/loginManager/youLogin.jsp
+      - key: SESSION_TIMEOUT_MINUTES
+        value: 20
+      - key: PLAYWRIGHT_BROWSERS_PATH
+        value: /opt/render/project/.playwright
