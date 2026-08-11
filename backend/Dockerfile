@@ -6,8 +6,11 @@ WORKDIR /app
 # Copy package files from the backend directory
 COPY backend/package*.json ./
 
-# Install npm dependencies
+# Install npm dependencies (pinned versions)
 RUN npm ci
+
+# Install the exact matching browser binaries for the installed playwright version
+RUN npx playwright install chromium
 
 # Copy the rest of the backend files
 COPY backend/ ./
