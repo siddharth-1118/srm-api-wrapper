@@ -283,6 +283,59 @@ app.get('/api/auth/status', async (req: Request, res: Response) => {
   });
 });
 
+app.get('/api/auth/debug', async (req: Request, res: Response) => {
+  let context = null;
+  let page = null;
+  try {
+    console.log("[DEBUG ENDPOINT] Launching fresh session for debug...");
+    const sessionObj = await createBrowserSession();
+    context = sessionObj.context;
+    page = sessionObj.page;
+
+    const loginUrl = process.env.SRM_LOGIN_URL || 'https://sp.srmist.edu.in/srmiststudentportal/students/loginManager/youLogin.jsp';
+    console.log(`[DEBUG ENDPOINT] Navigating to ${loginUrl}...`);
+    
+    let navError = null;
+    await page.goto(loginUrl, { waitUntil: 'load', timeout: 20000 }).catch(err => {
+      navError = err.message || err;
+    });
+
+    const currentUrl = page.url();
+    const pageTitle = await page.title().catch(() => 'unknown');
+    const html = await page.content().catch(() => '');
+    
+    let screenshotBase64 = null;
+    try {
+      const buffer = await page.screenshot({ timeout: 5000 });
+      screenshotBase64 = `data:image/png;base64,${buffer.toString('base64')}`;
+    } catch (ssErr: any) {
+      console.error("[DEBUG ENDPOINT] Screenshot failed:", ssErr);
+    }
+
+    await context.close().catch(() => {});
+
+    return res.json({
+      success: true,
+      navError,
+      currentUrl,
+      pageTitle,
+      htmlSnippet: html.substring(0, 3000),
+      htmlLength: html.length,
+      screenshot: screenshotBase64
+    });
+  } catch (err: any) {
+    console.error("[DEBUG ENDPOINT] Critical error:", err);
+    if (context) {
+      await context.close().catch(() => {});
+    }
+    return res.status(500).json({
+      success: false,
+      error: err.message || err,
+      stack: err.stack
+    });
+  }
+});
+
 // --------------------------------------------------------------------
 // STUDENT DATA ROUTES
 // --------------------------------------------------------------------
