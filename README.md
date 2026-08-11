@@ -223,3 +223,4 @@ For any pages/sections that are blank or unmapped (e.g. `/api/student/attendance
 4. **Trigger Extraction**:
    In `srmExtractor.ts`, add an extraction handler that navigates to the URL, checks for success, loads the HTML into cheerio, parses, and returns the structured JSON.
 5. **Handle fallback**: If the selector fails or page throws unauthorized, throw `Error('NOT_AVAILABLE')` so it triggers the standard warning block instead of crashing.
+"# srm-api-wrapper" 
