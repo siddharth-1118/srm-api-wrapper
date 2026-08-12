@@ -26,18 +26,51 @@ export async function submitLogin(
     await page.fill('#password', password);
     await page.fill('#captcha', captcha);
 
-    // Programmatically dispatch events inside the page to satisfy the guardlogin telemetry script (interactCount)
-    console.log("[SRM AUTH] Generating simulated interaction telemetry events...");
+    // Inject a telemetry spoofer in the page context to bypass the secure2.js bot-detection script
+    console.log("[SRM AUTH] Injecting human telemetry spoofer...");
     await page.evaluate(() => {
-      for (let i = 0; i < 55; i++) {
-        document.dispatchEvent(new MouseEvent('mousemove', { bubbles: true }));
-      }
-      for (let i = 0; i < 15; i++) {
-        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Shift', bubbles: true }));
+      // 1. Satisty the guardlogin.js interactCount
+      (window as any).interactCount = 85;
+      
+      // 2. Overwrite getTelemetryPayload from secure2.js to return a perfectly realistic human footprint
+      if (typeof (window as any).getTelemetryPayload === 'function') {
+        const originalGet = (window as any).getTelemetryPayload;
+        (window as any).getTelemetryPayload = function() {
+          const mockData = {
+            E: window.location.hostname || "sp.srmist.edu.in",
+            D: new Date().getTimezoneOffset(),
+            C: window.screen.colorDepth || 24,
+            B: window.screen.pixelDepth || 24,
+            "1o": window.devicePixelRatio || 1.25,
+            "1n": 1, 
+            "1m": "Win32", 
+            "1l": navigator.userAgent,
+            "1k": "en-US", 
+            "1j": 8, 
+            "1i": 8, 
+            "2h": false, 
+            v: false, // webdriver: false (hides Playwright!)
+            z: 3 + Math.floor(Math.random() * 4), // clicks
+            y: 150 + Math.floor(Math.random() * 100), // mouseMovements
+            x: 25 + Math.floor(Math.random() * 15), // keystrokeCount
+            w: 5000 + Math.floor(Math.random() * 3000), // timeOnPageMs
+            u: "f60f2f2" // canvas fingerprint
+          };
+          
+          try {
+            const str = JSON.stringify(mockData);
+            return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (match, p1) => {
+              return String.fromCharCode(parseInt(p1, 16));
+            }));
+          } catch (e) {
+            return originalGet();
+          }
+        };
+        console.log("[TELEMETRY SPOOFER] Overwrote getTelemetryPayload successfully.");
       }
     });
 
-    await page.waitForTimeout(400);
+    await page.waitForTimeout(500);
 
     // Set up listeners for submission telemetry inspection
     let navigationOccurred = false;
