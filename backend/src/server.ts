@@ -262,6 +262,17 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
     });
   }
 
+  const requestId = generateSessionId();
+  console.log(`[AUTH LOGIN REQUEST] requestId=${requestId} sessionId=${sessionId} timestamp=${new Date().toISOString()}`);
+
+  console.log(`[CAPTCHA BINDING]`);
+  console.log(`captchaSession = ${sessionId}`);
+  console.log(`loginSession = ${sessionId}`);
+  console.log(`captchaContext = ${session.browserContext ? 'present' : 'missing'}`);
+  console.log(`loginContext = ${session.browserContext ? 'present' : 'missing'}`);
+  console.log(`captchaPage = ${session.page ? 'present' : 'missing'}`);
+  console.log(`loginPage = ${session.page ? 'present' : 'missing'}`);
+
   if (session.loginInProgress) {
     return res.status(409).json({
       success: false,

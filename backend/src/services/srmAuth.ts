@@ -123,6 +123,13 @@ export async function submitLogin(
     console.log(`[SRM AUTH]`);
     console.log(`Login submitted`);
 
+    // Immediately before SRM login
+    console.log(`[AUTH DEBUG]`);
+    console.log(`browserConnected: ${!page.isClosed()}`);
+    console.log(`contextExists: ${!!page.context()}`);
+    console.log(`pageExists: ${!!page}`);
+    console.log(`currentUrl: ${page.url()}`);
+
     // Hover over the login button to trigger any hover listeners, then click it
     console.log("[SRM AUTH] Clicking the login button...");
     await page.hover('#btnLogin');
@@ -208,40 +215,6 @@ export async function submitLogin(
     const isSuccess = !stillOnLoginPage || dashboardDetected || logoutDetected;
     const authResultStatus = isSuccess ? 'SUCCESS' : 'FAILED';
 
-    // Print safe development logging block requested by the user
-    console.log(`[SRM LOGIN DEBUG]`);
-    console.log(`Login button clicked`);
-    console.log(`[SRM LOGIN DEBUG]`);
-    console.log(`Request URL: ${lastRequestUrl || 'N/A'}`);
-    console.log(`[SRM LOGIN DEBUG]`);
-    console.log(`Request method: ${lastRequestMethod || 'N/A'}`);
-    console.log(`[SRM LOGIN DEBUG]`);
-    console.log(`Response status: ${lastResponseStatus || 'N/A'}`);
-    console.log(`[SRM LOGIN DEBUG]`);
-    console.log(`Final URL: ${finalUrl}`);
-    console.log(`[SRM LOGIN DEBUG]`);
-    console.log(`Page title: ${await page.title()}`);
-    console.log(`[SRM LOGIN DEBUG]`);
-    console.log(`Navigation occurred: ${navigationOccurred}`);
-    console.log(`[SRM LOGIN DEBUG]`);
-    console.log(`Request failed: ${requestFailed}`);
-    console.log(`[SRM LOGIN DEBUG]`);
-    console.log(`JavaScript error: ${jsError}`);
-    console.log(`[SRM LOGIN DEBUG]`);
-    console.log(`Dashboard detected: ${dashboardDetected}`);
-    console.log(`[SRM LOGIN DEBUG]`);
-    console.log(`Logout detected: ${logoutDetected}`);
-    console.log(`[SRM LOGIN DEBUG]`);
-    console.log(`Login error detected: ${loginErrorDetected}`);
-    console.log(`[SRM LOGIN DEBUG]`);
-    console.log(`Captcha error detected: ${captchaErrorDetected}`);
-    console.log(`[SRM LOGIN DEBUG]`);
-    console.log(`Authentication result: ${authResultStatus}`);
-
-    if (isSuccess) {
-      return { success: true };
-    }
-
     // Determine specific errors
     let errorCode: SrmErrorCode = 'AUTHENTICATION_UNKNOWN';
     if (captchaErrorDetected) {
@@ -266,6 +239,36 @@ export async function submitLogin(
       } else {
         errorCode = 'AUTHENTICATION_UNKNOWN';
       }
+    }
+
+    if (!isSuccess) {
+      try {
+        const fs = require('fs');
+        const path = require('path');
+        const debugDir = path.resolve(__dirname, '..', '..', 'debug');
+        if (!fs.existsSync(debugDir)) {
+          fs.mkdirSync(debugDir, { recursive: true });
+        }
+        await fs.promises.writeFile(path.join(debugDir, 'auth-failure.html'), html, 'utf8');
+        await page.screenshot({ path: path.join(debugDir, 'auth-failure.png') }).catch(() => {});
+        console.log(`[SRM AUTH DEBUG] Saved auth-failure.html and auth-failure.png to ${debugDir}`);
+      } catch (err) {
+        console.error(`[SRM AUTH DEBUG] Failed to save debug files:`, err);
+      }
+    }
+
+    // Print safe development logging block requested by the user
+    console.log(`[SRM AUTH RESULT]`);
+    console.log(`status: ${lastResponseStatus || 'N/A'}`);
+    console.log(`finalUrl: ${finalUrl}`);
+    console.log(`title: ${await page.title().catch(() => '')}`);
+    console.log(`dashboardDetected: ${dashboardDetected}`);
+    console.log(`loginFormDetected: ${stillOnLoginPage}`);
+    console.log(`errorTextDetected: ${!!errorText}`);
+    console.log(`errorCategory: ${errorCode}`);
+
+    if (isSuccess) {
+      return { success: true };
     }
 
     return {
