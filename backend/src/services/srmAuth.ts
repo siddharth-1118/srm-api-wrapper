@@ -23,11 +23,36 @@ export async function submitLogin(
     // Clean the NetID (strip email suffix if user entered their full email address)
     const cleanNetId = netId.includes('@') ? netId.split('@')[0] : netId;
 
-    // Fill the inputs directly and reliably (prevents character drops on CPU-throttled containers)
-    console.log("[SRM AUTH] Filling login form credentials...");
-    await page.fill('#username', cleanNetId.trim());
-    await page.fill('#password', password);
-    await page.fill('#captcha', captcha);
+    console.log("[SRM AUTH] Simulating realistic human mouse movements to satisfy bot-detection telemetry...");
+    // Perform random mouse movements to build native interactCount
+    for (let i = 0; i < 30; i++) {
+      const x = 100 + Math.floor(Math.random() * 600);
+      const y = 100 + Math.floor(Math.random() * 400);
+      await page.mouse.move(x, y, { steps: 3 });
+    }
+
+    console.log("[SRM AUTH] Filling login form credentials with simulated human keystrokes...");
+    
+    // Type username
+    await page.click('#username');
+    await page.keyboard.press('Control+A');
+    await page.keyboard.press('Backspace');
+    await page.keyboard.type(cleanNetId.trim(), { delay: 30 + Math.random() * 30 });
+    
+    // Type password
+    await page.click('#password');
+    await page.keyboard.press('Control+A');
+    await page.keyboard.press('Backspace');
+    await page.keyboard.type(password, { delay: 30 + Math.random() * 30 });
+    
+    // Type captcha
+    await page.click('#captcha');
+    await page.keyboard.press('Control+A');
+    await page.keyboard.press('Backspace');
+    await page.keyboard.type(captcha, { delay: 30 + Math.random() * 30 });
+
+    // Move mouse over to the button area before clicking
+    await page.mouse.move(200 + Math.random() * 100, 400 + Math.random() * 100, { steps: 5 });
 
     // Inject a telemetry spoofer in the page context to bypass the secure2.js bot-detection script
     console.log("[SRM AUTH] Injecting human telemetry spoofer...");
