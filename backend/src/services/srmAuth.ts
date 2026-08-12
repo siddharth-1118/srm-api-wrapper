@@ -20,9 +20,12 @@ export async function submitLogin(
     // Ensure the selectors are visible on the login form
     await page.waitForSelector('#username', { state: 'visible', timeout: 5000 });
     
+    // Clean the NetID (strip email suffix if user entered their full email address)
+    const cleanNetId = netId.includes('@') ? netId.split('@')[0] : netId;
+
     // Fill the inputs directly and reliably (prevents character drops on CPU-throttled containers)
     console.log("[SRM AUTH] Filling login form credentials...");
-    await page.fill('#username', netId);
+    await page.fill('#username', cleanNetId.trim());
     await page.fill('#password', password);
     await page.fill('#captcha', captcha);
 
