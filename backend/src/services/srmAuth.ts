@@ -134,17 +134,28 @@ export async function submitLogin(
       html = await page.content();
       $ = cheerio.load(html);
 
-      dashboardDetected = finalUrl.toLowerCase().includes('dashboard') || 
+      // Success: URL moved away from login page
+      const isOnLoginPage = finalUrl.includes('youLogin') || finalUrl.includes('loginManager');
+      const isOnStudentPage = !isOnLoginPage && (
+        finalUrl.includes('studentportal') ||
+        finalUrl.includes('srmiststudentportal') ||
+        finalUrl.includes('studentFetch') ||
+        finalUrl.includes('student')
+      );
+
+      dashboardDetected = isOnStudentPage ||
+                           finalUrl.toLowerCase().includes('dashboard') || 
                            finalUrl.toLowerCase().includes('home') || 
                            html.includes('id="dashboard"') || 
                            html.includes('dashboard-title');
       
       logoutDetected = $("a[href*='logout' i], a[href*='Logout' i], a:contains('Logout'), a:contains('Sign Out')").length > 0;
       
-      loginErrorDetected = $(".alert-danger, .validation-summary-errors, [id*='Error' i], [class*='error-message' i]").length > 0;
+      // Error detection — use specific selectors only, avoid [id*='Error'] which is too broad
+      loginErrorDetected = $(".alert-danger, .alert-warning, .validation-summary-errors, [class*='error-message'], [class*='errorMessage'], .login-error, #loginError").length > 0;
       
       if (loginErrorDetected) {
-        $(".alert-danger, .validation-summary-errors, [id*='Error' i], [class*='error-message' i]").each((_, el) => {
+        $(".alert-danger, .alert-warning, .validation-summary-errors, [class*='error-message'], [class*='errorMessage'], .login-error, #loginError").each((_, el) => {
           const text = $(el).text().trim().replace(/\s+/g, ' ');
           if (text.length > 2 && !text.toLowerCase().includes('javascript')) {
             errorText = text;
@@ -161,7 +172,21 @@ export async function submitLogin(
     }
 
     const captchaErrorDetected = errorText.toLowerCase().includes('captcha') || 
-                                 html.toLowerCase().includes('invalid captcha');
+                                 html.toLowerCase().includes('invalid captcha') ||
+                                 html.toLowerCase().includes('captcha is incorrect');
+
+    // If still on login page and no specific error detected, check for inline HTML error texts    
+    const stillOnLoginPage = finalUrl.includes('youLogin') || finalUrl.includes('loginManager');
+    if (stillOnLoginPage && !loginErrorDetected && !errorText) {
+      // Try to grab any visible text that looks like an error from the page
+      const bodyText = html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ');
+      const captchaMatch = bodyText.match(/invalid captcha|captcha (is )?incorrect|wrong captcha/i);
+      const credMatch = bodyText.match(/invalid (username|password|credentials|netid)|username (or|and) password (is )?incorrect|login failed/i);
+      if (captchaMatch) errorText = captchaMatch[0];
+      else if (credMatch) errorText = credMatch[0];
+      else errorText = errorText || 'Login failed — still on login page after submission.';
+      loginErrorDetected = true;
+    }
     
     const isSuccess = dashboardDetected || logoutDetected;
     const authResultStatus = isSuccess ? 'SUCCESS' : 'FAILED';
