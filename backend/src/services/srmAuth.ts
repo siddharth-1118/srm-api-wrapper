@@ -164,8 +164,8 @@ export async function submitLogin(
                              html.includes('id="captcha"') ||
                              html.includes('name="username"');
       
-      stillOnLoginPage = hasLoginInputs || finalUrl.includes('youLogin') || finalUrl.includes('loginManager');
-      dashboardDetected = !stillOnLoginPage;
+      stillOnLoginPage = hasLoginInputs || (finalUrl.includes('youLogin') && !finalUrl.includes('studentHomePage.jsp'));
+      dashboardDetected = finalUrl.includes('studentHomePage.jsp') || html.includes('studentHomePage.jsp') || html.includes('funSetFormId');
       logoutDetected = $("a[href*='logout' i], a[href*='Logout' i], a:contains('Logout'), a:contains('Sign Out')").length > 0;
       
       // Error detection — use specific selectors only
@@ -243,11 +243,29 @@ export async function submitLogin(
     }
 
     // Determine specific errors
-    let errorCode: SrmErrorCode = 'INVALID_CREDENTIALS';
+    let errorCode: SrmErrorCode = 'AUTHENTICATION_UNKNOWN';
     if (captchaErrorDetected) {
-      errorCode = 'INVALID_CAPTCHA';
-    } else if (!loginErrorDetected) {
-      errorCode = 'INTERNAL_ERROR';
+      if (errorText.toLowerCase().includes('expire') || html.toLowerCase().includes('expired')) {
+        errorCode = 'CAPTCHA_EXPIRED';
+      } else {
+        errorCode = 'INVALID_CAPTCHA';
+      }
+    } else {
+      const errLower = errorText.toLowerCase();
+      const isCredentialError = errLower.includes('password') || 
+                                 errLower.includes('username') || 
+                                 errLower.includes('credential') || 
+                                 errLower.includes('netid') || 
+                                 errLower.includes('invalid login') ||
+                                 errLower.includes('invalid username/password');
+      
+      if (isCredentialError) {
+        errorCode = 'INVALID_CREDENTIALS';
+      } else if (errLower.includes('timeout') || errLower.includes('unavailable') || errLower.includes('reach') || errLower.includes('network') || requestFailed) {
+        errorCode = 'SRM_UNAVAILABLE';
+      } else {
+        errorCode = 'AUTHENTICATION_UNKNOWN';
+      }
     }
 
     return {

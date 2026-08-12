@@ -4,10 +4,13 @@ export interface SRMSession {
   sessionId: string;
   browserContext: BrowserContext;
   page: Page;
-  state: 'CAPTCHA_REQUIRED' | 'AUTHENTICATED' | 'AUTH_FAILED';
+  state: 'CAPTCHA_REQUIRED' | 'AUTHENTICATION_IN_PROGRESS' | 'AUTHENTICATED' | 'AUTH_FAILED' | 'SESSION_LOST' | 'EXPIRED' | 'LOGGED_OUT' | 'AUTHENTICATION_UNKNOWN' | 'INVALID_CAPTCHA' | 'CAPTCHA_EXPIRED' | 'INVALID_CREDENTIALS' | 'SRM_UNAVAILABLE';
   authenticated: boolean;
   createdAt: number;
   lastActivityAt: number;
+  loginInProgress?: boolean;
+  captchaGeneratedAt?: number;
+  captchaAgeMs?: number;
 }
 
 export interface StudentProfile {
@@ -69,4 +72,6 @@ export type SrmErrorCode =
   | 'SRM_UNAVAILABLE'
   | 'SESSION_EXPIRED'
   | 'NOT_AVAILABLE'
-  | 'INTERNAL_ERROR';
+  | 'INTERNAL_ERROR'
+  | 'CAPTCHA_EXPIRED'
+  | 'AUTHENTICATION_UNKNOWN';

@@ -10,6 +10,7 @@ import {
 } from './srmDiscovery';
 import { parseAttendance } from '../parsers/attendanceParser';
 import { parseGradePage } from '../parsers/gradeParser';
+import { parseInternalMarks } from '../parsers/internalMarksParser';
 import { parseHostelPage } from '../parsers/hostelParser';
 import { parseHostelBookingPage } from '../parsers/hostelBookingParser';
 import { parseHostelDetailsPage, validateHostelDetailsPage } from '../parsers/hostelDetailsParser';
@@ -313,6 +314,9 @@ export async function extractAttendanceData(page: Page) {
 
   // ── Step 2: Wait for content to settle ────────────────────────────────
   await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+  // Wait for the AJAX content table to load into the main details div
+  await page.waitForSelector('#divMainDetails table, #divMainDetails .table-responsive', { timeout: 8000 }).catch(() => {});
+  await page.waitForTimeout(1000).catch(() => {});
 
   // ── Step 3: Log page state ────────────────────────────────────────────
   const finalUrl   = page.url();
@@ -442,63 +446,33 @@ export async function extractGradesData(page: Page) {
     throw Object.assign(new Error('SRM_SESSION_EXPIRED'), { code: 'SRM_SESSION_EXPIRED' });
   }
 
-  await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
-  await saveDebugSnapshot(page, 'grades');
-
-  const semesters: any[] = [];
-  
-  // 2. Discover if there is a semester select dropdown
-  const select = await page.$('select');
-  if (select) {
-    console.log(`[GRADES] Select element discovered. Extracting all semesters...`);
-    const options = await page.$$eval('select option', opts =>
-      (opts as HTMLOptionElement[]).map(o => ({ value: o.value, text: o.textContent?.trim() || '' }))
-          .filter(o => o.value && !o.text.toLowerCase().includes('select'))
-    );
-
-    console.log(`[GRADES] Found ${options.length} term options in dropdown.`);
-    for (const opt of options) {
-      try {
-        console.log(`[GRADES] Extracting semester option: ${opt.text} (${opt.value})`);
-        await page.selectOption('select', opt.value);
-        await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
-        await page.waitForTimeout(1000).catch(() => {});
-
-        const html = await getPageHtmlWithFrameFallback(page);
-        const termParsed = parseGradePage(html);
-        semesters.push({
-          semester: opt.text || termParsed.semester,
-          academicYear: termParsed.academicYear,
-          courses: termParsed.courses,
-          summary: termParsed.summary
-        });
-      } catch (err: any) {
-        console.log(`[GRADES] Failed semester select ${opt.value}: ${err.message}`);
-      }
-    }
+  if (page.url().includes('youLogin.jsp')) {
+    throw Object.assign(new Error('SRM_SESSION_EXPIRED'), { code: 'SRM_SESSION_EXPIRED' });
   }
 
-  // Fallback if no semesters extracted (e.g. no select elements or only one semester shown by default)
-  if (semesters.length === 0) {
-    console.log(`[GRADES] No term dropdown processed. Parsing active page structure...`);
-    const html = await getPageHtmlWithFrameFallback(page);
-    const parsed = parseGradePage(html);
-    semesters.push({
-      semester: parsed.semester || '1',
-      academicYear: parsed.academicYear,
-      courses: parsed.courses,
-      summary: parsed.summary
+  // Wait for the AJAX content table to load
+  await page.waitForSelector('#divMainDetails table', { timeout: 8000 }).catch(() => {});
+  await page.waitForTimeout(1000).catch(() => {});
+
+  await saveDebugSnapshot(page, 'grades');
+
+  const html = await getPageHtmlWithFrameFallback(page);
+  
+  // Guard against wrong page
+  if (!html.toLowerCase().includes('grade') && !html.toLowerCase().includes('mark')) {
+    throw Object.assign(new Error('WRONG_PAGE'), {
+      code: 'WRONG_PAGE',
+      message: 'The Grades/Marks page was not opened.'
     });
   }
 
-  const firstSem = semesters[0] || { courses: [] };
-  const headers = firstSem.courses[0] ? Object.keys(firstSem.courses[0]._raw) : [];
-  const grades = firstSem.courses.map((c: any) => c._raw);
+  const parsed = parseGradePage(html);
 
   return {
-    headers,
-    grades,
-    semesters,
+    headers: parsed._rawHeaders,
+    grades: parsed.courses.map(c => c._raw),
+    semesters: parsed.semesters,
+    overallSummary: parsed.overallSummary,
     _url: page.url()
   };
 }
@@ -682,6 +656,66 @@ export async function extractHostelData(page: Page) {
     booking: results.booking,
     details: results.details,
     willingness: results.willingness,
+    _url: page.url()
+  };
+}
+
+export async function extractInternalMarksData(page: Page) {
+  console.log(`[INTERNAL MARKS] Starting internal marks extraction...`);
+
+  if (page.url().includes('youLogin.jsp')) {
+    throw Object.assign(new Error('SRM_SESSION_EXPIRED'), { code: 'SRM_SESSION_EXPIRED' });
+  }
+
+  // 1. Navigate to Internal Mark Details section (form ID 13 in SRM sidebar)
+  const navigated = await navigateViaSrmFormId(page, 13, 'Internal Mark Details');
+
+  if (!navigated) {
+    throw Object.assign(new Error('SRM_NAVIGATION_FAILED'), {
+      code: 'SRM_NAVIGATION_FAILED',
+      details: 'Could not navigate to Internal Mark Details page. All strategies failed — try logging in again.'
+    });
+  }
+
+  if (page.url().includes('youLogin.jsp')) {
+    throw Object.assign(new Error('SRM_SESSION_EXPIRED'), { code: 'SRM_SESSION_EXPIRED' });
+  }
+
+  // Wait for the AJAX content table to load
+  await page.waitForSelector('#divMainDetails table', { timeout: 8000 }).catch(() => {});
+  await page.waitForTimeout(1000).catch(() => {});
+
+  await saveDebugSnapshot(page, 'internal-marks');
+
+  const html = await getPageHtmlWithFrameFallback(page);
+
+  // Guard against wrong page
+  if (!html.toLowerCase().includes('internal mark') && !html.toLowerCase().includes('internal assessment')) {
+    throw Object.assign(new Error('WRONG_PAGE'), {
+      code: 'WRONG_PAGE',
+      message: 'The Internal Marks page was not opened.'
+    });
+  }
+
+  const parsed = parseInternalMarks(html);
+
+  return {
+    metadata: parsed.metadata,
+    subjects: parsed.subjects.map(s => ({
+      semester: s.semester,
+      academicYear: s.academicYear,
+      courseCode: s.courseCode,
+      courseName: s.courseName,
+      courseType: s.courseType,
+      faculty: s.faculty,
+      components: s.components,
+      total: s.total,
+      maxMarks: s.maxMarks,
+      obtainedMarks: s.obtainedMarks,
+      status: s.status,
+      remarks: s.remarks,
+    })),
+    tables: parsed.tables,
     _url: page.url()
   };
 }

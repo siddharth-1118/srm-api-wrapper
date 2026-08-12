@@ -10,6 +10,7 @@
     "test": "ts-node src/parsers/attendanceParser.test.ts && ts-node src/parsers/gradeParser.test.ts && ts-node src/parsers/hostelParser.test.ts"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.45.1",
     "cheerio": "^1.0.0-rc.12",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",

@@ -16,7 +16,12 @@ async function getBrowserInstance(): Promise<Browser> {
 export async function createBrowserSession(): Promise<{ context: BrowserContext; page: Page }> {
   const browserInstance = await getBrowserInstance();
   
+  const proxyConfig = process.env.PROXY_SERVER
+    ? { server: process.env.PROXY_SERVER }
+    : undefined;
+
   const context = await browserInstance.newContext({
+    proxy: proxyConfig,
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
     viewport: { width: 1280, height: 800 }
   });
