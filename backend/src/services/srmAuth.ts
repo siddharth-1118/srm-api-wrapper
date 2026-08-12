@@ -188,7 +188,11 @@ export async function submitLogin(
       loginErrorDetected = true;
     }
     
-    const isSuccess = dashboardDetected || logoutDetected;
+    // ── Primary success signal: URL moved AWAY from the login page ────────
+    // SRM portal only keeps you on youLogin.jsp if login failed.
+    // Any other URL = successful authentication.
+    const notOnLoginPage = !finalUrl.includes('youLogin') && !finalUrl.includes('loginManager/youLogin');
+    const isSuccess = notOnLoginPage || dashboardDetected || logoutDetected;
     const authResultStatus = isSuccess ? 'SUCCESS' : 'FAILED';
 
     // Print safe development logging block requested by the user

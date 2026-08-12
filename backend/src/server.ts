@@ -336,6 +336,91 @@ app.get('/api/auth/debug', async (req: Request, res: Response) => {
   }
 });
 
+// Full login debug — performs actual login and returns the post-login page state
+app.post('/api/auth/debug-login', async (req: Request, res: Response) => {
+  const { netId, password, captcha, sessionId: bodySessionId } = req.body;
+  const sessionId = bodySessionId || (req.headers['x-session-id'] as string);
+  let context = null;
+  let usedExistingSession = false;
+
+  try {
+    let page: any;
+
+    if (sessionId) {
+      const session = sessionStore.getSession(sessionId);
+      if (session && !session.page.isClosed()) {
+        page = session.page;
+        usedExistingSession = true;
+        console.log(`[DEBUG LOGIN] Using existing session: ${sessionId}`);
+      }
+    }
+
+    if (!page) {
+      const sessionObj = await createBrowserSession();
+      context = sessionObj.context;
+      page = sessionObj.page;
+      const loginUrl = process.env.SRM_LOGIN_URL || 'https://sp.srmist.edu.in/srmiststudentportal/students/loginManager/youLogin.jsp';
+      await page.goto(loginUrl, { waitUntil: 'load', timeout: 20000 });
+      console.log(`[DEBUG LOGIN] Fresh session created, on login page`);
+    }
+
+    const beforeUrl = page.url();
+    const beforeTitle = await page.title().catch(() => '');
+
+    // Fill and submit login if credentials provided
+    if (netId && password && captcha) {
+      try {
+        await page.waitForSelector('#username', { state: 'visible', timeout: 5000 });
+        await page.fill('#username', '');
+        await page.fill('#password', '');
+        await page.fill('#captcha', '');
+        await page.type('#username', netId.trim(), { delay: 50 });
+        await page.type('#password', password, { delay: 50 });
+        await page.type('#captcha', captcha.trim(), { delay: 50 });
+        await page.click('#btnLogin', { delay: 100 });
+        await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
+        await page.waitForTimeout(2000);
+      } catch (fillErr: any) {
+        console.error('[DEBUG LOGIN] Fill/click error:', fillErr.message);
+      }
+    }
+
+    const afterUrl = page.url();
+    const afterTitle = await page.title().catch(() => '');
+    const html = await page.content().catch(() => '');
+
+    let screenshotBase64 = null;
+    try {
+      const buf = await page.screenshot({ timeout: 8000, fullPage: false });
+      screenshotBase64 = `data:image/png;base64,${buf.toString('base64')}`;
+    } catch {}
+
+    // Check all meaningful patterns
+    const isOnLoginPage = afterUrl.includes('youLogin') || afterUrl.includes('loginManager');
+    const hasLogout = html.includes('logout') || html.includes('Logout');
+    const hasStudentUrl = afterUrl.includes('student');
+    const hasError = html.toLowerCase().includes('invalid') || html.toLowerCase().includes('error');
+
+    if (context) await context.close().catch(() => {});
+
+    return res.json({
+      success: true,
+      usedExistingSession,
+      before: { url: beforeUrl, title: beforeTitle },
+      after: { url: afterUrl, title: afterTitle },
+      analysis: { isOnLoginPage, hasLogout, hasStudentUrl, hasError },
+      htmlSnippet: html.substring(0, 5000),
+      htmlLength: html.length,
+      screenshot: screenshotBase64
+    });
+  } catch (err: any) {
+    console.error("[DEBUG LOGIN] Critical error:", err);
+    if (context) await context.close().catch(() => {});
+    return res.status(500).json({ success: false, error: err.message, stack: err.stack });
+  }
+});
+
+
 // --------------------------------------------------------------------
 // STUDENT DATA ROUTES
 // --------------------------------------------------------------------
