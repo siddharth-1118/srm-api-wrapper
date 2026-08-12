@@ -368,20 +368,12 @@ app.post('/api/auth/debug-login', async (req: Request, res: Response) => {
     const beforeTitle = await page.title().catch(() => '');
 
     // Fill and submit login if credentials provided
+    let loginResult = null;
     if (netId && password && captcha) {
       try {
-        await page.waitForSelector('#username', { state: 'visible', timeout: 5000 });
-        await page.fill('#username', '');
-        await page.fill('#password', '');
-        await page.fill('#captcha', '');
-        await page.type('#username', netId.trim(), { delay: 50 });
-        await page.type('#password', password, { delay: 50 });
-        await page.type('#captcha', captcha.trim(), { delay: 50 });
-        await page.click('#btnLogin', { delay: 100 });
-        await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
-        await page.waitForTimeout(2000);
+        loginResult = await submitLogin(page, netId.trim(), password, captcha.trim());
       } catch (fillErr: any) {
-        console.error('[DEBUG LOGIN] Fill/click error:', fillErr.message);
+        console.error('[DEBUG LOGIN] Login error:', fillErr.message);
       }
     }
 
@@ -406,6 +398,7 @@ app.post('/api/auth/debug-login', async (req: Request, res: Response) => {
     return res.json({
       success: true,
       usedExistingSession,
+      loginResult,
       before: { url: beforeUrl, title: beforeTitle },
       after: { url: afterUrl, title: afterTitle },
       analysis: { isOnLoginPage, hasLogout, hasStudentUrl, hasError },

@@ -20,37 +20,24 @@ export async function submitLogin(
     // Ensure the selectors are visible on the login form
     await page.waitForSelector('#username', { state: 'visible', timeout: 5000 });
     
-    // Clear fields first using playwright
-    await page.fill('#username', '');
-    await page.fill('#password', '');
-    await page.fill('#captcha', '');
+    // Fill the inputs directly and reliably (prevents character drops on CPU-throttled containers)
+    console.log("[SRM AUTH] Filling login form credentials...");
+    await page.fill('#username', netId);
+    await page.fill('#password', password);
+    await page.fill('#captcha', captcha);
 
-    // Simulate natural mouse movements across the screen to trigger telemetry listeners
-    console.log("[SRM AUTH] Simulating human-like mouse movements...");
-    await page.mouse.move(100, 100);
-    await page.mouse.move(250, 180, { steps: 5 });
-    await page.mouse.move(500, 320, { steps: 8 });
-    
-    // Click on the body once to generate a click event
-    await page.mouse.click(50, 50, { delay: 50 });
+    // Programmatically dispatch events inside the page to satisfy the guardlogin telemetry script (interactCount)
+    console.log("[SRM AUTH] Generating simulated interaction telemetry events...");
+    await page.evaluate(() => {
+      for (let i = 0; i < 55; i++) {
+        document.dispatchEvent(new MouseEvent('mousemove', { bubbles: true }));
+      }
+      for (let i = 0; i < 15; i++) {
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Shift', bubbles: true }));
+      }
+    });
 
-    // Focus and type NetID character-by-character
-    console.log("[SRM AUTH] Typing username...");
-    await page.mouse.move(400, 200, { steps: 5 });
-    await page.click('#username', { delay: 100 });
-    await page.type('#username', netId, { delay: 75 });
-
-    // Move to and type Password character-by-character
-    console.log("[SRM AUTH] Typing password...");
-    await page.mouse.move(400, 280, { steps: 5 });
-    await page.click('#password', { delay: 100 });
-    await page.type('#password', password, { delay: 75 });
-
-    // Move to and type CAPTCHA character-by-character
-    console.log("[SRM AUTH] Typing captcha...");
-    await page.mouse.move(400, 360, { steps: 5 });
-    await page.click('#captcha', { delay: 100 });
-    await page.type('#captcha', captcha, { delay: 75 });
+    await page.waitForTimeout(400);
 
     // Set up listeners for submission telemetry inspection
     let navigationOccurred = false;
@@ -128,30 +115,24 @@ export async function submitLogin(
     let logoutDetected = false;
     let loginErrorDetected = false;
     let errorText = "";
+    let stillOnLoginPage = false;
 
     while (attempts < 10) {
       finalUrl = page.url();
       html = await page.content();
       $ = cheerio.load(html);
 
-      // Success: URL moved away from login page
-      const isOnLoginPage = finalUrl.includes('youLogin') || finalUrl.includes('loginManager');
-      const isOnStudentPage = !isOnLoginPage && (
-        finalUrl.includes('studentportal') ||
-        finalUrl.includes('srmiststudentportal') ||
-        finalUrl.includes('studentFetch') ||
-        finalUrl.includes('student')
-      );
-
-      dashboardDetected = isOnStudentPage ||
-                           finalUrl.toLowerCase().includes('dashboard') || 
-                           finalUrl.toLowerCase().includes('home') || 
-                           html.includes('id="dashboard"') || 
-                           html.includes('dashboard-title');
+      // Check if we are still on the login form (failed login renders the inputs again)
+      const hasLoginInputs = html.includes('id="username"') || 
+                             html.includes('id="password"') || 
+                             html.includes('id="captcha"') ||
+                             html.includes('name="username"');
       
+      stillOnLoginPage = hasLoginInputs || finalUrl.includes('youLogin') || finalUrl.includes('loginManager');
+      dashboardDetected = !stillOnLoginPage;
       logoutDetected = $("a[href*='logout' i], a[href*='Logout' i], a:contains('Logout'), a:contains('Sign Out')").length > 0;
       
-      // Error detection — use specific selectors only, avoid [id*='Error'] which is too broad
+      // Error detection — use specific selectors only
       loginErrorDetected = $(".alert-danger, .alert-warning, .validation-summary-errors, [class*='error-message'], [class*='errorMessage'], .login-error, #loginError").length > 0;
       
       if (loginErrorDetected) {
@@ -176,7 +157,6 @@ export async function submitLogin(
                                  html.toLowerCase().includes('captcha is incorrect');
 
     // If still on login page and no specific error detected, check for inline HTML error texts    
-    const stillOnLoginPage = finalUrl.includes('youLogin') || finalUrl.includes('loginManager');
     if (stillOnLoginPage && !loginErrorDetected && !errorText) {
       // Try to grab any visible text that looks like an error from the page
       const bodyText = html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ');
@@ -188,11 +168,8 @@ export async function submitLogin(
       loginErrorDetected = true;
     }
     
-    // ── Primary success signal: URL moved AWAY from the login page ────────
-    // SRM portal only keeps you on youLogin.jsp if login failed.
-    // Any other URL = successful authentication.
-    const notOnLoginPage = !finalUrl.includes('youLogin') && !finalUrl.includes('loginManager/youLogin');
-    const isSuccess = notOnLoginPage || dashboardDetected || logoutDetected;
+    // ── Primary success signal: Form inputs are gone ────────
+    const isSuccess = !stillOnLoginPage || dashboardDetected || logoutDetected;
     const authResultStatus = isSuccess ? 'SUCCESS' : 'FAILED';
 
     // Print safe development logging block requested by the user
