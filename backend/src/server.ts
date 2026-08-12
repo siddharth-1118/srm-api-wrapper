@@ -469,6 +469,28 @@ app.get('/api/auth/status', async (req: Request, res: Response) => {
   });
 });
 
+app.get('/api/auth/debug/failure-html', (req: Request, res: Response) => {
+  const path = require('path');
+  const fs = require('fs');
+  const filePath = path.resolve(__dirname, '..', '..', 'debug', 'auth-failure.html');
+  if (fs.existsSync(filePath)) {
+    res.setHeader('Content-Type', 'text/html');
+    return res.sendFile(filePath);
+  }
+  return res.status(404).send('No failure HTML found.');
+});
+
+app.get('/api/auth/debug/failure-png', (req: Request, res: Response) => {
+  const path = require('path');
+  const fs = require('fs');
+  const filePath = path.resolve(__dirname, '..', '..', 'debug', 'auth-failure.png');
+  if (fs.existsSync(filePath)) {
+    res.setHeader('Content-Type', 'image/png');
+    return res.sendFile(filePath);
+  }
+  return res.status(404).send('No failure PNG found.');
+});
+
 app.get('/health', (req: Request, res: Response) => {
   return res.json({
     status: 'ok',
