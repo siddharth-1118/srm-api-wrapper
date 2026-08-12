@@ -311,6 +311,14 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
     session.captchaAgeMs = captchaAgeMs;
     console.log(`[AUTH LOGIN] Session: ${sessionId}, Captcha Age: ${Math.round(captchaAgeMs / 1000)}s`);
 
+    // Safe diagnostic log — confirms routing without exposing values
+    console.log(`[CREDENTIAL ROUTING]`);
+    console.log(`netIdProvided=${!!netId}`);
+    console.log(`passwordProvided=${!!password}`);
+    console.log(`captchaProvided=${!!captcha}`);
+    console.log(`netIdLength=${netId?.trim().length || 0}`);
+    console.log(`netIdHasDomain=${netId?.includes('@') || false}`);
+
     const result = await submitLogin(session.page, netId.trim(), password, captcha.trim());
     
     if (result.success) {
@@ -334,6 +342,14 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
         console.error(`[SUPABASE ERROR] Failed to update login success status:`, err);
       }
 
+      console.log(`[BACKEND LOGIN RESPONSE]`);
+      console.log(`requestId=${requestId}`);
+      console.log(`sessionId=${sessionId}`);
+      console.log(`httpStatus=200`);
+      console.log(`success=true`);
+      console.log(`authenticated=true`);
+      console.log(`errorCode=none`);
+
       return res.json({
         success: true,
         authenticated: true,
@@ -355,6 +371,15 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
         console.error(`[SUPABASE ERROR] Failed to update login failure status:`, err);
       }
 
+      console.log(`[BACKEND LOGIN RESPONSE]`);
+      console.log(`requestId=${requestId}`);
+      console.log(`sessionId=${sessionId}`);
+      console.log(`httpStatus=200`);
+      console.log(`success=false`);
+      console.log(`authenticated=false`);
+      console.log(`errorCode=${result.errorCode || 'AUTHENTICATION_UNKNOWN'}`);
+      console.log(`errorMessage=${result.errorMessage || 'Authentication failed.'}`);
+
       return res.json({
         success: false,
         authenticated: false,
@@ -366,6 +391,12 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
     }
   } catch (err) {
     console.error("Error during login authentication:", err);
+    console.log(`[BACKEND LOGIN RESPONSE]`);
+    console.log(`requestId=${requestId}`);
+    console.log(`sessionId=${sessionId}`);
+    console.log(`httpStatus=500`);
+    console.log(`success=false`);
+    console.log(`errorCode=INTERNAL_ERROR`);
     return res.status(500).json({
       success: false,
       error: { code: 'INTERNAL_ERROR', message: 'Internal error during login process.' }
