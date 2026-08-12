@@ -163,6 +163,15 @@ async function requireAuth(req: AuthenticatedRequest, res: Response, next: NextF
 app.post('/api/auth/start', async (req: Request, res: Response) => {
   try {
     const oldSessionId = req.headers['x-session-id'] as string;
+    const frontendInstanceId = req.headers['x-frontend-instance-id'] as string || 'unknown';
+    const requestId = generateSessionId();
+
+    console.log(`[AUTH START REQUEST]`);
+    console.log(`requestId=${requestId}`);
+    console.log(`timestamp=${new Date().toISOString()}`);
+    console.log(`existingSessionId=${oldSessionId || 'none'}`);
+    console.log(`frontendInstanceId=${frontendInstanceId}`);
+
     if (oldSessionId) {
       const oldSession = sessionStore.getSession(oldSessionId);
       // Ownership check: only sweep if it belongs to current unauthenticated context
@@ -225,7 +234,14 @@ app.post('/api/auth/start', async (req: Request, res: Response) => {
 app.post('/api/auth/captcha/refresh', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   const session = req.srmSession!;
   try {
-    console.log(`Refreshing captcha for session: ${session.sessionId}`);
+    const triggerReason = req.body.reason || 'manual';
+    const triggerSource = req.body.source || 'user';
+    console.log(`[CAPTCHA REFRESH TRIGGER]`);
+    console.log(`reason=${triggerReason}`);
+    console.log(`source=${triggerSource}`);
+    console.log(`sessionId=${session.sessionId}`);
+    console.log(`timestamp=${new Date().toISOString()}`);
+
     const captchaBase64 = await refreshCaptcha(session.page);
     return res.json({
       success: true,
