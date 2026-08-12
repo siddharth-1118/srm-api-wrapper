@@ -189,6 +189,103 @@ export async function extractProfileData(page: Page) {
 // -----------------------------------------------------------------------
 // PHASE 6: Attendance extraction — click sidebar item, handle iframes, parse
 // -----------------------------------------------------------------------
+// -----------------------------------------------------------------------
+// SHARED HELPER: Navigate to an SRM portal section using onclick-based
+// sidebar links (funSetFormId / funShow). The SRM portal sidebar has NO
+// href — links use onclick="funSetFormId(N)" which submits a hidden form
+// to HRDSystem.jsp, or funShow(N, url) which does an AJAX POST.
+// Strategy:
+//   1. Call the JS function directly via page.evaluate()
+//   2. If that fails (function not in scope), click #listIdN by CSS id
+//   3. If that fails, submit the hidden form manually via evaluate()
+// -----------------------------------------------------------------------
+async function navigateViaSrmFormId(page: Page, formId: number, sectionName: string): Promise<boolean> {
+  console.log(`[SRM NAV] Navigating to section: ${sectionName} (formId=${formId})`);
+
+  // Strategy 1: Call funSetFormId() directly in the page context
+  try {
+    const result = await page.evaluate((id: number) => {
+      if (typeof (window as any).funSetFormId === 'function') {
+        (window as any).funSetFormId(id);
+        return 'called';
+      }
+      return 'not_found';
+    }, formId);
+    if (result === 'called') {
+      console.log(`[SRM NAV] funSetFormId(${formId}) called via evaluate()`);
+      await page.waitForLoadState('networkidle', { timeout: 18000 }).catch(() => {});
+      console.log(`[SRM NAV] After funSetFormId: ${page.url()}`);
+      if (!page.url().includes('youLogin.jsp')) return true;
+    }
+  } catch (e: any) {
+    console.log(`[SRM NAV] Strategy 1 (evaluate funSetFormId) failed: ${e?.message}`);
+  }
+
+  // Strategy 2: Click the sidebar anchor by id attribute (#listIdN)
+  try {
+    const el = page.locator(`#listId${formId}`);
+    const isVis = await el.isVisible({ timeout: 3000 }).catch(() => false);
+    if (isVis) {
+      await el.click({ timeout: 5000 });
+      await page.waitForLoadState('networkidle', { timeout: 18000 }).catch(() => {});
+      console.log(`[SRM NAV] After #listId${formId} click: ${page.url()}`);
+      if (!page.url().includes('youLogin.jsp')) return true;
+    }
+  } catch (e: any) {
+    console.log(`[SRM NAV] Strategy 2 (click #listId${formId}) failed: ${e?.message}`);
+  }
+
+  // Strategy 3: Submit the hidden form manually
+  try {
+    const formSubmitted = await page.evaluate((id: number) => {
+      const hdnFormId = document.querySelector('#hdnFormId') as HTMLInputElement | null;
+      const form = document.querySelector('#userHomePage') as HTMLFormElement | null;
+      if (hdnFormId && form) {
+        hdnFormId.value = String(id);
+        form.action = '../../students/template/HRDSystem.jsp';
+        form.submit();
+        return true;
+      }
+      return false;
+    }, formId);
+    if (formSubmitted) {
+      console.log(`[SRM NAV] Strategy 3: form submitted with hdnFormId=${formId}`);
+      await page.waitForLoadState('networkidle', { timeout: 18000 }).catch(() => {});
+      console.log(`[SRM NAV] After form submit: ${page.url()}`);
+      if (!page.url().includes('youLogin.jsp')) return true;
+    }
+  } catch (e: any) {
+    console.log(`[SRM NAV] Strategy 3 (form submit) failed: ${e?.message}`);
+  }
+
+  // Strategy 4: Try clicking sidebar <a> by visible text patterns
+  const textPatterns: Record<number, string[]> = {
+    8:  ['Grade / Mark', 'Grade/Mark', 'Grades', 'Marks'],
+    9:  ['Attendance Details', 'Attendance'],
+    126: ['Exam Time Table', 'Exam Timetable', 'Examination'],
+  };
+  const patterns = textPatterns[formId] || [sectionName];
+  for (const pattern of patterns) {
+    try {
+      const locator = page.locator('a').filter({ hasText: new RegExp(pattern, 'i') }).first();
+      const isVis = await locator.isVisible({ timeout: 2000 }).catch(() => false);
+      if (isVis) {
+        await locator.click({ timeout: 5000 });
+        await page.waitForLoadState('networkidle', { timeout: 18000 }).catch(() => {});
+        console.log(`[SRM NAV] After text-click "${pattern}": ${page.url()}`);
+        if (!page.url().includes('youLogin.jsp')) return true;
+      }
+    } catch (e: any) {
+      console.log(`[SRM NAV] Strategy 4 text-click "${pattern}" failed: ${e?.message}`);
+    }
+  }
+
+  return false;
+}
+
+// -----------------------------------------------------------------------
+// PHASE 6: Attendance extraction
+// -----------------------------------------------------------------------
 export async function extractAttendanceData(page: Page) {
   console.log(`[ATTENDANCE] Starting attendance extraction...`);
   console.log(`[ATTENDANCE] Current URL: ${page.url()}`);
@@ -197,76 +294,15 @@ export async function extractAttendanceData(page: Page) {
     throw Object.assign(new Error('SRM_SESSION_EXPIRED'), { code: 'SRM_SESSION_EXPIRED' });
   }
 
-  // ── Step 1: Find and click "Attendance Details" in the SRM sidebar ─────
-  const CLICK_PATTERNS = [
-    'Attendance Details',
-    'Attendance',
-    'Course Attendance',
-    'My Attendance',
-  ];
+  // ── Step 1: Navigate to Attendance Details (form ID 9 in SRM sidebar) ─
+  // SRM sidebar uses onclick="funSetFormId(9)" with NO href — we must use
+  // JS evaluation, CSS id click, or form submit strategies.
+  const navigated = await navigateViaSrmFormId(page, 9, 'Attendance Details');
 
-  let clicked = false;
-  let linkText = '';
-  let linkHref = '';
-  let linkOnclick = '';
-
-  for (const pattern of CLICK_PATTERNS) {
-    try {
-      // Prefer <a> with matching text (covers both href and onclick links)
-      const locator = page.locator(`a`).filter({ hasText: pattern }).first();
-      const isVis = await locator.isVisible({ timeout: 3000 }).catch(() => false);
-      if (!isVis) {
-        // Also check non-anchor clickable elements
-        const btn = page.locator(`[role="button"], button, li, span`).filter({ hasText: pattern }).first();
-        const btnVis = await btn.isVisible({ timeout: 2000 }).catch(() => false);
-        if (!btnVis) continue;
-      }
-
-      linkText    = pattern;
-      linkHref    = await locator.getAttribute('href').catch(() => '') ?? '';
-      linkOnclick = await locator.getAttribute('onclick').catch(() => '') ?? '';
-
-      console.log(`[ATTENDANCE DISCOVERY] Link text: ${linkText}`);
-      console.log(`[ATTENDANCE DISCOVERY] href: ${linkHref || '(none)'}`);
-      console.log(`[ATTENDANCE DISCOVERY] onclick: ${linkOnclick || '(none)'}`);
-
-      // Click and wait for navigation / network settle
-      const navPromise = page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
-      await locator.click({ timeout: 5000 }).catch(async () => {
-        // Fallback: try direct navigation if href is present
-        if (linkHref && !linkHref.startsWith('javascript')) {
-          const fullHref = linkHref.startsWith('http')
-            ? linkHref
-            : `https://sp.srmist.edu.in${linkHref}`;
-          await page.goto(fullHref, { waitUntil: 'networkidle', timeout: 15000 });
-        }
-      });
-      await navPromise;
-
-      clicked = true;
-      console.log(`[ATTENDANCE DISCOVERY] Navigation: true`);
-      console.log(`[ATTENDANCE DISCOVERY] Final URL: ${page.url()}`);
-      break;
-    } catch (e: any) {
-      console.log(`[ATTENDANCE] Could not click "${pattern}": ${e?.message}`);
-    }
-  }
-
-  // Fallback: use navigateTo (href scan) if click failed
-  if (!clicked) {
-    console.log(`[ATTENDANCE] Click approach failed, falling back to link-href navigation...`);
-    const result = await navigateTo(page, CLICK_PATTERNS, undefined);
-    if (result) {
-      clicked = true;
-      console.log(`[ATTENDANCE DISCOVERY] Navigation: true (href fallback)`);
-      console.log(`[ATTENDANCE DISCOVERY] Final URL: ${page.url()}`);
-    }
-  }
-
-  if (!clicked) {
+  if (!navigated) {
     throw Object.assign(new Error('SRM_NAVIGATION_FAILED'), {
       code: 'SRM_NAVIGATION_FAILED',
-      details: 'Could not find or click "Attendance Details" in the SRM dashboard sidebar. Check backend/debug/dashboard.html for the actual navigation links.'
+      details: 'Could not navigate to Attendance Details. All strategies failed — try logging in again.'
     });
   }
 
@@ -390,53 +426,14 @@ export async function extractGradesData(page: Page) {
     throw Object.assign(new Error('SRM_SESSION_EXPIRED'), { code: 'SRM_SESSION_EXPIRED' });
   }
 
-  // 1. Click sidebar item for Grades / Marks & Credit
-  const CLICK_PATTERNS = [
-    'Grade / Mark & Credit',
-    'Grade/Mark & Credit',
-    'Grade / Mark',
-    'Grades & Credits',
-    'Academic Performance',
-    'Marks',
-  ];
+  // 1. Navigate to Grade/Mark & Credit section (form ID 8 in SRM sidebar)
+  // SRM sidebar uses onclick="funSetFormId(8)" with NO href.
+  const navigated = await navigateViaSrmFormId(page, 8, 'Grade / Mark & Credit');
 
-  let clicked = false;
-  let linkHref = '';
-
-  for (const pattern of CLICK_PATTERNS) {
-    try {
-      const locator = page.locator(`a`).filter({ hasText: pattern }).first();
-      const isVis = await locator.isVisible({ timeout: 2500 }).catch(() => false);
-      if (!isVis) {
-        const btn = page.locator(`button, span`).filter({ hasText: pattern }).first();
-        if (!await btn.isVisible({ timeout: 1500 }).catch(() => false)) continue;
-      }
-
-      linkHref = await locator.getAttribute('href').catch(() => '') ?? '';
-      const navPromise = page.waitForLoadState('networkidle', { timeout: 12000 }).catch(() => {});
-      await locator.click({ timeout: 4000 }).catch(async () => {
-        if (linkHref && !linkHref.startsWith('javascript')) {
-          await page.goto(linkHref.startsWith('http') ? linkHref : `https://sp.srmist.edu.in${linkHref}`, { waitUntil: 'networkidle', timeout: 12000 });
-        }
-      });
-      await navPromise;
-      clicked = true;
-      break;
-    } catch (e: any) {
-      console.log(`[GRADES] Failed click on pattern ${pattern}: ${e.message}`);
-    }
-  }
-
-  if (!clicked) {
-    // Fallback navigation via scanned hrefs
-    const result = await navigateTo(page, CLICK_PATTERNS, undefined);
-    if (result) clicked = true;
-  }
-
-  if (!clicked) {
+  if (!navigated) {
     throw Object.assign(new Error('SRM_NAVIGATION_FAILED'), {
       code: 'SRM_NAVIGATION_FAILED',
-      details: 'Could not find or navigate to Grade/Mark page in sidebar.'
+      details: 'Could not navigate to Grade/Mark page. All strategies failed — try logging in again.'
     });
   }
 
@@ -455,7 +452,7 @@ export async function extractGradesData(page: Page) {
   if (select) {
     console.log(`[GRADES] Select element discovered. Extracting all semesters...`);
     const options = await page.$$eval('select option', opts =>
-      opts.map(o => ({ value: o.value, text: o.textContent?.trim() || '' }))
+      (opts as HTMLOptionElement[]).map(o => ({ value: o.value, text: o.textContent?.trim() || '' }))
           .filter(o => o.value && !o.text.toLowerCase().includes('select'))
     );
 
